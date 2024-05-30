@@ -5,6 +5,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import {File} from "buffer";
 import { notFound, redirect } from "next/navigation"
+import { revalidatePath } from "next/cache";
 
 
 
@@ -100,7 +101,10 @@ export async function updateProduct(id:string, prevState: unknown, formData: For
     })
 
 
+  revalidatePath("/")
+  revalidatePath("/products")
   redirect("/admin/products");
+    
   
 }
 

@@ -15,6 +15,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import dotenv from "dotenv";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
+import ProductDetails from "./ProductDetails";
+import Link from "next/link";
 
 type CheckoutFormProps = {
   product: {

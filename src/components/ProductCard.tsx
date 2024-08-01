@@ -16,17 +16,23 @@ type ProductCardProps ={
 export function ProductCard({id,name, priceInCents, description, imagePath}:ProductCardProps){
     return <Card className="flex overflow-hidden flex-col">
         <div className="relative w-full h-auto aspect-video">
+        <Link href={`/products/${id}`}>   
             <Image src={imagePath} fill alt={name} />
+            </Link>
         </div>
         <CardHeader>
+        <Link href={`/products/${id}`}>
             <CardTitle>{name}</CardTitle>
             <CardDescription>{formatCurrency(priceInCents/100)}</CardDescription>
+            </Link>
         </CardHeader>
         <CardContent className="flex-grow">
+        <Link href={`/products/${id}`}>
             <p className="line-clamp-4">{description}</p>
+            </Link>
         </CardContent>
-        <CardFooter>
-            <Button asChild size="lg" className="w-full"><Link href={`/products/${id}/purchase`}>Purchase</Link></Button>
+        <CardFooter className="flex-col gap-4">
+            <Button asChild size="lg" className="w-full"><Link href={`/products/${id}/purchase`}>Purchase now</Link></Button>
         </CardFooter>
     </Card>
 }

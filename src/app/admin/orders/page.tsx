@@ -6,18 +6,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import db from "@/db/db";
-import { MoreVertical } from "lucide-react";
+import { Minus, MoreVertical } from "lucide-react";
 import { formatCurrency, formatNumber } from '../../../lib/formatters';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteDropDownItem } from "./_components/OrdersActions";
-import Orders from '../../(customerFacing)/orders/page';
 
 function getOrders() {
   return db.order.findMany({select:
     {id:true,
         pricePaidInCents:true,
         product:{select:{name:true}},
-        user:{select:{email:true}}
+        user:{select:{email:true}},
+        DiscountCode: {select:{code:true}}
     },
     orderBy:{createdAt:"desc"}})
 }
@@ -42,6 +42,7 @@ async function OrdersTable() {
           <th scope="col" className="text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">Product</th>
           <th scope="col" className="text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">Customer</th>
           <th scope="col" className="text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">Price Paid</th>
+          <th scope="col" className="text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">Coupon</th>
           <th scope="col" className="text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
             <span className="sr-only">Actions</span>
           </th>
@@ -53,6 +54,7 @@ async function OrdersTable() {
             <TableCell>{order.product.name}</TableCell>
             <TableCell>{order.user.email}</TableCell>
             <TableCell>{formatCurrency(order.pricePaidInCents/100)}</TableCell>
+            <TableCell>{order.DiscountCode==null ? <Minus/>: order.DiscountCode.code}</TableCell>
             <TableCell className="text-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>

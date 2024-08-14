@@ -2,16 +2,22 @@ import db from "@/db/db";
 import { notFound } from "next/navigation";
 import Stripe from "stripe";
 import CheckoutForm from "./_components/CheckoutForm";
+import { usableDiscountCodeWhere } from "@/lib/discountCodeHelper";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export default async function PurchasePage({
   params: { id },
+  searchParams:{coupon}
 }: {
-  params: { id: string };
+  params: { id: string}, 
+    searchParams:{coupon?:string}
+   ;
 }) {
   const product = await db.product.findUnique({ where: { id } });
   if (product == null) return notFound();
+  
+  const discountCode = coupon== null ? undefined : await getDiscountCode(coupon, product.id)
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: product.priceInCents,
@@ -26,7 +32,16 @@ export default async function PurchasePage({
   return (
     <CheckoutForm
       product={product}
+      discountCode={discountCode || undefined }
       clientSecret={paymentIntent.client_secret}
     />
   );
 }
+
+function getDiscountCode(coupon:string,productId:string){
+  return db.discountCode.findUnique({
+    select:{id:true, discountAmount:true, discountType:true},
+    where: {...usableDiscountCodeWhere, code:coupon}})
+}
+
+//1:00:18 / 1:26:48

@@ -32,7 +32,7 @@ export function formatDiscountCode({
       return formatCurrency(discountAmount);
     default:
       throw new Error(
-        `Invalid discount code typo ${discountType satisfies never}`
+        `Invalid discount code type ${discountType satisfies never}`
       );
   }
 }

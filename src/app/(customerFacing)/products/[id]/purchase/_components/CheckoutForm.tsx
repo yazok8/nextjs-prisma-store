@@ -1,7 +1,4 @@
-"use client";
-
-import { userOrderExists } from "@/app/actions/order";
-import { Button } from "@/components/ui/button";
+"use client";import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -29,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DiscountCodeType } from "@prisma/client";
 import { getDiscountedAmount } from "@/lib/discountCodeHelper";
+import { createPaymentIntent } from "@/actions/orders";
 
 type CheckoutFormProps = {
   product: {
@@ -43,7 +41,6 @@ type CheckoutFormProps = {
     discountAmount: number;
     discountType: DiscountCodeType;
   };
-  clientSecret: string;
 };
 
 const env = dotenv.config({ path: "./.env" });
@@ -54,7 +51,6 @@ const stripePromise = loadStripe(
 
 export default function CheckoutForm({
   product,
-  clientSecret,
   discountCode,
 }: CheckoutFormProps) {
   const amount =
@@ -73,6 +69,7 @@ export default function CheckoutForm({
             className="object-cover"
           />
         </div>
+        <div>
         <div className="text-lg flex gap-4 items-baseline">
           <div
             className={
@@ -88,11 +85,12 @@ export default function CheckoutForm({
           <div className="line-clamp-3 text-muted-foreground">
             {product.description}
           </div>
+          </div>
         </div>
       </div>
-      <Elements options={{ clientSecret }} stripe={stripePromise}>
+      <Elements options={{ amount, mode:"payment", currency:"usd" }} stripe={stripePromise}>
         <Form
-          priceInCents={product.priceInCents}
+          priceInCents={amount}
           productId={product.id}
           discountCode={discountCode}
         />
@@ -130,12 +128,17 @@ function Form({ priceInCents, productId, discountCode }: formProps) {
 
     setIsLoading(true);
 
-    const orderExists = await userOrderExists(email, productId);
+    const formSubmit = await elements.submit()
+    if(formSubmit.error != null){
+      setErrorMessage(formSubmit.error.message)
+      setIsLoading(false);
+      return;
+    }
 
-    if (orderExists) {
-      setErrorMessage(
-        "You have already purchased this product. Try downloading it from the My Orders page"
-      );
+    //this will create a new payment intent for the user with a specific discount
+    const paymentIntent= await createPaymentIntent(email, productId, discountCode?.id)
+    if(paymentIntent.error != null){
+      setErrorMessage(paymentIntent.error)
       setIsLoading(false);
       return;
     }
@@ -143,8 +146,9 @@ function Form({ priceInCents, productId, discountCode }: formProps) {
     stripe
       .confirmPayment({
         elements,
+        clientSecret:paymentIntent.clientSecret,
         confirmParams: {
-          return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchase-success`,
+          return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchaseSuccess`,
         },
       })
       .then(({ error }) => {

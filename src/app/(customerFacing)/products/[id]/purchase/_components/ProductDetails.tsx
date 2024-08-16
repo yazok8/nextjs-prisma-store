@@ -22,15 +22,17 @@ export default function ProductDetails({product}:ProductProps){
             src={product.imagePath}
             fill
             alt={product.name}
-            className="object-cover"
+            className="object-contain"
+            
           />
         </div>
-        <div className="aspect-video flex-shrink-0 w-1/4 relative justify-end flex-reverse">
+        <div className="aspect-video flex-shrink-0 w-1/3 relative justify-end flex-reverse">
           <Image
             src={product.imagePath}
             fill
             alt={product.name}
-            className="object-cover"
+            className="object-contain"
+            
           />
         </div>
 

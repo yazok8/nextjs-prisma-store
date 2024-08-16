@@ -43,7 +43,7 @@ model Order {
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   product          Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
   DiscountCode     DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
-  discountCodeId   String
+  discountCodeId   String?
 }
 
 model DownloadVerification {

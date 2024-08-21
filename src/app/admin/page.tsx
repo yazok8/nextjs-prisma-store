@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import db from "@/db/db";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
+import connectDB from '@/app/config/db';
+
+connectDB();
 
 
 async function getSalesData(){
@@ -34,6 +37,9 @@ async function getUserData(){
         averageValuePerUser: userCount === 0 ? 0 : (orderData._sum.pricePaidInCents || 0) / userCount / 100
     }
 }
+
+// Register User 
+
 
 async function getProductData(){
     const [ activeCount, inactiveCount ] = await Promise.all([

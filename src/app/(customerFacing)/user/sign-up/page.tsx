@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {useToast } from "@/components/ui/use-toast";
 
 const formSchema = z
   .object({
@@ -28,29 +29,39 @@ const formSchema = z
 type SignUpFormValues = z.infer<typeof formSchema>;
 
 export default function SignUp() {
+  const {toast} = useToast();
     const router=useRouter();
     const { register, handleSubmit, formState: { errors } } = useForm<SignUpFormValues>({
         resolver: zodResolver(formSchema),
     });
+    
 
   async function onSubmit(data: SignUpFormValues) {
+
+    const lowercasedEmail = data.email.toLowerCase();
     try{
         const response = await fetch("/admin/auth/signup", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
+          body: JSON.stringify({
               name: data.name,
-              email: data.email,
+              email: lowercasedEmail,
               hashedPassword: data.hashedPassword,
               confirmPassword: data.confirmPassword,
             }),
           });
           if (response.ok) {
+            // Redirect user to sign-in page after successful registration
+            router.refresh();
             router.push("/user/sign-in");
           }else{
-              console.log('Registration failed');
+            toast({
+              title: "Error",
+              description: "Oops! something went wrong",
+              variant:"destructive"
+            })
     }
         
     }catch(err){
@@ -59,6 +70,8 @@ export default function SignUp() {
     }
   }
   return(
+    <div className="flex items-center justify-center min-h-[85vh] overflow-y-hidden">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
     <form onSubmit={handleSubmit(onSubmit)} className="sign-up-form">
     <div className="max-w-xl">
         <Label htmlFor="name">Name</Label>
@@ -104,8 +117,10 @@ export default function SignUp() {
         {errors.confirmPassword && <p>{errors.confirmPassword.message}</p>}
     </div>
 
-    <Button type="submit">Sign Up</Button>
+    <Button className="mt-4" type="submit">Sign Up</Button>
 </form>
+</div>
+</div>
 
   )
 }

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidPassword } from "./lib/isValidPassword";
 export async function middleware(req: NextRequest) {
-//   if ((await isAuthenicated(req)) === false) {
-//     return new NextResponse("unauthorized", {
-//       status: 401,
-//       headers: { "WWW-Authenticate": "Basic" },
-//     });
-//   }
+  if ((await isAuthenicated(req)) === false) {
+    return new NextResponse("unauthorized", {
+      status: 401,
+      headers: { "WWW-Authenticate": "Basic" },
+    });
+  }
 }
 
 async function isAuthenicated(req: NextRequest) {

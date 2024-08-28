@@ -29,7 +29,7 @@ const getMostNewestProducts = cache(() => {
 
 export default function Homepage() {
   return (
-    <main className="space-y-12">
+    <main className="my-8">
       <ProductGridSection
         title="Most Popular"
         productsFetcher={getMostPopularProducts}

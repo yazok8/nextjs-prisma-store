@@ -30,7 +30,8 @@ model User {
   name           String?
   email          String    @unique
   emailVerified  DateTime?
-  image          String?
+  address        String?
+  profileImage   String?
   hashedPassword String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

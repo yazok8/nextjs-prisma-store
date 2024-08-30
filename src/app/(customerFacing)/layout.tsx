@@ -1,51 +1,52 @@
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { BurgerMenu } from "@/components/BurgerMenu";
 import { Nav, NavLink } from "@/components/Nav";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
+import { User } from "lucide-react";
 
-import { authOptions } from "@/lib/auth";
-import { User } from "@prisma/client";
-import { ShoppingBag } from "lucide-react";
-import { getServerSession } from "next-auth";
 
-export const dynamic = "force-dynamic";
 
-export default async function layout({
-  children, user
+export default async function Layout({
+  children,
 }: Readonly<{
-  children: React.ReactNode,user:User
+  children: React.ReactNode;
 }>) {
+  // Fetch session data server-side
   const session = await getServerSession(authOptions);
 
   return (
     <>
       <Nav>
+        <div className="flex justify-center mx-auto">
+        <NavLink href="/" >
+          Home
+        </NavLink>
         <NavLink href="/products">Products</NavLink>
         <NavLink href="/orders">My Orders</NavLink>
-      </Nav>
-      <Nav
-        style={{
-          position: "absolute",
-          top: "0",
-          left: "1.25rem",
-          paddingInline: "0",
-        }}
-      >
-        <NavLink href="/">
-          <ShoppingBag />
-        </NavLink>
-      </Nav>
-      {session?.user ? (
-        <>
-          <a href={`/user`} className="absolute top-4 right-24 text-white">
-            {session?.user?.name}
-          </a>{" "}
-          <UserSignOut />
-        </>
-      ) : (
-        <div style={{ position: "absolute", right: 0, top: "0" }}>
-          <UserSignIn />
         </div>
-      )}
-      <div className="container">{children}</div>
+        <div className="hidden md:flex items-center absolute top-3 right-10 space-x-2">
+        <a href={`/user`} className="flex text-white w-full text-nowrap pr-2">
+        <div className="w-8"><User/></div>
+        Hello, {session?.user?.name}
+            </a>
+        {session?.user ? (
+          <>
+
+            <UserSignOut />
+          </>
+        ) : (
+          <UserSignIn />
+        )}
+      </div>
+
+
+      {/* Pass session data to the BurgerMenu */}
+      <BurgerMenu session={session} />
+      </Nav>
+    
+
+      <div className="container my-4">{children}</div>
     </>
   );
 }

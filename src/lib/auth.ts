@@ -61,24 +61,25 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       return url.startsWith(baseUrl) ? url : baseUrl;
     },
-    async jwt({token, user, account, profile, isNewUser}){
-      console.log(token, user);
-      
-      if(user){
-        return{
-          ...token
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        return {
+          ...token,
+          name: user.name,
+          email: user.email
+        };
       }
-      return token
+      return token;
     },
-    async session({session,user, token}){
+    async session({ session, token }) {
       return {
-        ...session, 
-        user:{
+        ...session,
+        user: {
           ...session.user,
-          name:token.name
+          name: token.name,
+          email: token.email
         }
-      }
+      };
     }
   }
 };

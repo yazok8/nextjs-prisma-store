@@ -22,7 +22,7 @@ const formSchema = z.object({
 type SignInFormValues = z.infer<typeof formSchema>;
 
 export default function Login() {
-  const {toast} = useToast();
+  const { toast } = useToast();
   const router = useRouter();
   const {
     handleSubmit,
@@ -46,11 +46,11 @@ export default function Login() {
     });
 
     if (signinCreds?.error) {
-        toast({
-          title: "Error",
-          description: "Oops! something went wrong",
-          variant:"destructive"
-        })
+      toast({
+        title: "Error",
+        description: "Oops! something went wrong",
+        variant: "destructive",
+      });
     } else {
       router.push(callbackUrl);
       router.refresh();
@@ -64,37 +64,45 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-[85vh] overflow-hidden p-5">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-      <form onSubmit={handleSubmit(onSubmit)} className="sign-up-form">
-        <div className="max-w-sm">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register("email")} // Register the email input
-            placeholder="Enter your email"
-          />
+        <form onSubmit={handleSubmit(onSubmit)} className="sign-up-form">
+          <div className="max-w-sm">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register("email")} // Register the email input
+              placeholder="Enter your email"
+            />
 
-          {errors.email && <p>{errors.email.message}</p>}
-        </div>
+            {errors.email && <p>{errors.email.message}</p>}
+          </div>
 
-        <div className="max-w-sm">
-          <Label htmlFor="hashedPassword">Password</Label>
-          <Input
-            id="hashedPassword"
-            type="password"
-            {...register("hashedPassword")}
-            placeholder="Enter your password"
-          />
-          {errors.hashedPassword && <p>{errors.hashedPassword.message}</p>}
-        </div>
-        <div className="mt-4">
-          <Button type="submit">Sign in</Button>
-        </div>
-      </form>
-      <p className="text-sm my-3">If you don&apos;t have an account, please <a className="text-blue-700 cursor-pointer text-sm" onClick={() => SignUp()} type="submit">
-        Click here
-      </a> to sign up</p>
-    </div>
+          <div className="max-w-sm">
+            <Label htmlFor="hashedPassword">Password</Label>
+            <Input
+              id="hashedPassword"
+              type="password"
+              {...register("hashedPassword")}
+              placeholder="Enter your password"
+            />
+            {errors.hashedPassword && <p>{errors.hashedPassword.message}</p>}
+          </div>
+          <div className="mt-4">
+            <Button type="submit">Sign in</Button>
+          </div>
+        </form>
+        <p className="text-sm my-3">
+          If you don&apos;t have an account, please{" "}
+          <a
+            className="text-blue-700 cursor-pointer text-sm"
+            onClick={() => SignUp()}
+            type="submit"
+          >
+            Click here
+          </a>{" "}
+          to sign up
+        </p>
+      </div>
     </div>
   );
 }

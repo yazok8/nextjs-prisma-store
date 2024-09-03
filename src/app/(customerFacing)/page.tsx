@@ -23,10 +23,6 @@ const getMostNewestProducts = cache(() => {
   });
 },["/","getMostNewestProducts"],{revalidate: 60 * 60 * 24});
 
-// function wait(duration:number){
-//     return new Promise(resolve=>setTimeout(resolve, duration))
-// }
-
 export default function Homepage() {
   return (
     <main className="my-8">

@@ -8,13 +8,10 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
 import { Order } from "@prisma/client";
-import MyOrdersPage from "../orders/page";
-import OrderInformation from "@/email/components/OrderInformation";
 
 export default async function ProfilePage() {
   try {

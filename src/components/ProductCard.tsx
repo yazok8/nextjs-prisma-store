@@ -32,7 +32,7 @@ export function ProductCard({id,name, priceInCents, description, imagePath}:Prod
             </Link>
         </CardContent>
         <CardFooter className="flex-col gap-4">
-            <Button asChild size="lg" className="w-full lg:px-16"><Link href={`/products/${id}/purchase`}>Purchase now</Link></Button>
+            <Button asChild size="lg" className="w-full "><Link href={`/products/${id}/purchase`}>Purchase now</Link></Button>
         </CardFooter>
     </Card>
 }

@@ -35,7 +35,6 @@ export default async function ProfilePage() {
     });
 
     console.log("User:", user);
-
     if (!user) {
       return <div>User not found.</div>;
     }
@@ -93,7 +92,7 @@ async function UserInfoTable({ user }: { user: UserInfoProps }) {
             </TableCell>
           </TableRow>
           <TableRow className="border-none">
-            <TableHead className="w-[100px]">Delivery Address:</TableHead>
+            <TableHead className="w-[100px] text-nowrap">Delivery Address:</TableHead>
             <TableCell className="whitespace-break-spaces">
               {user.address}
             </TableCell>

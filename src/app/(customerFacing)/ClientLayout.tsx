@@ -6,6 +6,7 @@ import { Nav, NavLink } from "@/components/Nav";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
 import { ShoppingBag, Store, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import CartCounter from "./Nav/_components/CartCounter";
 
 interface ClientLayoutProps {
   session: Session | null;
@@ -73,7 +74,7 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
 
           {/* Pass session data to the BurgerMenu */}
           <BurgerMenu session={session} />
-          <NavLink href="/cart"><ShoppingBag className="my-auto" /></NavLink>
+          <NavLink href="/cart"><CartCounter/></NavLink>
         </div>
       </Nav>
 

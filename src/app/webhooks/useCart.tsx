@@ -57,7 +57,7 @@ export const CartContextProvider = (props: Props) => {
             const itemTotal = item.priceInCents * item.Quantity;
 
             acc.total += itemTotal;
-            acc.qty + item.Quantity;
+            acc.qty += item.Quantity;
 
             return acc;
           },

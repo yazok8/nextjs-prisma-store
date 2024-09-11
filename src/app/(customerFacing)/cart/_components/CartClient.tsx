@@ -26,7 +26,7 @@ function CartClient() {
     }
   return (
     <div>
-        <h2 className='text-center'>Shopping Cart</h2>
+        <h2 className='text-center font-bold mb-8'>Shopping Cart</h2>
         <div className='grid grid-cols-5 text-sx gap-4 pb-2 items-center'>
             <div className="col-span-2 justify-self-start">Product</div>
             <div className='justify-self-center'>Price</div>

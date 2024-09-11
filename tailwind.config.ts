@@ -17,7 +17,8 @@ const config = {
       screens: {
         "2xl": "1400px",
         "lg":"710px",
-        'xxs': '540px', // min-width
+        'xxs': '540px',
+        'sm':'420px' // min-width
       },
     },
     extend: {

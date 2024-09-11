@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { Session } from "next-auth"; // Client-side layout component
 import ClientLayout from "./ClientLayout";
+import Footer from "@/components/Footer";
 
 async function fetchSession(): Promise<Session | null> {
   const session = await getServerSession(authOptions);
@@ -16,8 +17,11 @@ export default async function Layout({
   const session = await fetchSession(); // Fetch session server-side
 
   return (
-    <ClientLayout session={session}>
+    <>
+      <ClientLayout session={session}>
       {children}
     </ClientLayout>
+      {/* <Footer /> */}
+    </>
   );
 }

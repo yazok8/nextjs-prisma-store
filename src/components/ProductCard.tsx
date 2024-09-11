@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { useCart } from "@/app/webhooks/useCart";
 
 
 type ProductCardProps ={
@@ -14,6 +15,8 @@ type ProductCardProps ={
 }
 
 export function ProductCard({id,name, priceInCents, description, imagePath}:ProductCardProps){
+    
+
     return <Card className="flex overflow-hidden flex-col">
         <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`}>   
@@ -31,7 +34,7 @@ export function ProductCard({id,name, priceInCents, description, imagePath}:Prod
             <p className="line-clamp-4">{description}</p>
             </Link>
         </CardContent>
-        <CardFooter className="flex-col gap-4">
+        <CardFooter className="flex-col gap-2">
             <Button asChild size="lg" className="w-full "><Link href={`/products/${id}/purchase`}>Purchase now</Link></Button>
         </CardFooter>
     </Card>

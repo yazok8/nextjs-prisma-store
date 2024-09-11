@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import SignUp from "../sign-up/page";
 import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({

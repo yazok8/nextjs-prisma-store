@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import Provider from "@/components/Provider";
+import CartProvider from "@/Providers/CartProvider";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"],variable: "--font-sans" });
 
@@ -20,10 +22,13 @@ export default function RootLayout({
   return (
     <html lang="en">
        <Provider>
-      <body>
+        <CartProvider>
+        <body>
       <main className={cn("min-h-screen bg-background font-sans antialiased",inter.variable)}>{children}</main>
       <Toaster />
+      <Footer/>
       </body>
+        </CartProvider>
       </Provider>
     </html>
   );

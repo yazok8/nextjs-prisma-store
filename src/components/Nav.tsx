@@ -14,7 +14,7 @@ interface NavProps {
 export function Nav({ children, style, className }: NavProps) {
   return (
     <nav
-      className="bg-primary text-primary-foreground flex justify-center px-4"
+      className="bg-primary text-primary-foreground flex justify-center px-4 fixed w-full top-0 z-10"
       style={style}
     >
       {children}

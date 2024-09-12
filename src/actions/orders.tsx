@@ -39,9 +39,7 @@ export async function emailOrderHistory(prevState:unknown, formData:FormData):Pr
 });
 
     if(user==null) {
-        return { 
-        message:"Check your email to view your order history"
-    }
+        return { error: "User not found" };
 }
     
  const orders = user.orders.map(async order=>{
@@ -51,6 +49,7 @@ export async function emailOrderHistory(prevState:unknown, formData:FormData):Pr
              productId:order.product.id}})).id}
  })
  
+ try {
     const data = await resend.emails.send({
         from:`Support<${process.env.SENDER_EMAIL}>`,
         to: user.email,
@@ -58,11 +57,18 @@ export async function emailOrderHistory(prevState:unknown, formData:FormData):Pr
         react: <OrderHistoryEmail orders={await Promise.all(orders)} />
     })
 
-    if(data.error){
-        return {error:"There was an error sending your email. Please try again "}
+    if (data.error) {
+      // Check if data.error has a message property
+      const errorMessage = typeof data.error === "string" ? data.error : data.error?.message;
+      
+      return { error: "There was an error sending to your email. Please try again."};
     }
 
-    return { message: "Check your email to view your order history" }
+    return { message: "Order history sent successfully." };
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return { error: "There was an error sending your email. Please try again." };
+  }
 }
 
 export async function createPaymentIntent(email:string, productId:string, discountCodeId?:string){

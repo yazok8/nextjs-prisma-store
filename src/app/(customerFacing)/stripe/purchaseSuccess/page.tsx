@@ -35,7 +35,7 @@ export default async function SuccessPage({
             src={product.imagePath}
             fill
             alt={product.name}
-            className="object-cover"
+            className="object-contain"
           />
         </div>
         <div>

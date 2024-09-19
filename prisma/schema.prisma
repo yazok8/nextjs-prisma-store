@@ -45,12 +45,13 @@ model Order {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   userId           String
-  productId        String
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId        String
   product          Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
   DiscountCode     DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
   discountCodeId   String?
 }
+
 
 model DownloadVerification {
   id        String   @id @default(uuid())

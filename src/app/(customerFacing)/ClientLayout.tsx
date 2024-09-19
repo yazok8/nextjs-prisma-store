@@ -14,7 +14,7 @@ interface ClientLayoutProps {
 }
 
 export default function ClientLayout({ session, children }: ClientLayoutProps) {
-  const [isProfileClicked, setIsProfileClicked] = useState(false);
+  const [isProfileClicked, setIsProfileClicked] = useState<boolean>(false);
 
   
 
@@ -67,7 +67,19 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
             </a>
             {isProfileClicked && (
               <div ref={profileMenuRef} className="absolute top-[3.5rem] right-[4.5rem] bg-white p-2 shadow-lg">
-                {session?.user ? <UserSignOut /> : <UserSignIn />}
+                {session?.user ? <div className="space-y-2 mt-5">
+                  <NavLink
+                    href={`/user`}
+                    className="h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white text-nowrap px-auto focus:bg-white focus:text-black"
+                  >
+                    My Account
+                    <div className="px-2">
+                      {/* User icon */}
+                      <User />
+                    </div>
+                  </NavLink>
+                <UserSignOut />
+                </div> : <UserSignIn />}
               </div>
             )}
           </div>

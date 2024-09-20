@@ -48,7 +48,7 @@ function CartClient() {
                     <span>{formatCurrency(cartSubTotalAmount/100)}</span>
                 </div>
                 <p>Taxes & shopping calculate at checkout</p>
-                <Button onClick={()=>{}} className='w-full'><Link href={"/"}>Checkout</Link></Button>
+                <Button onClick={()=>{}} className='w-full'><Link href={"/checkout"}>Checkout</Link></Button>
                 <Link href="/" className="text-slate-500 flex items-center gap-1 mt-2">
                     <ArrowLeft />
                     <span>Continue Shopping</span>

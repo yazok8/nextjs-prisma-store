@@ -16,46 +16,55 @@ interface ClientLayoutProps {
 export default function ClientLayout({ session, children }: ClientLayoutProps) {
   const [isProfileClicked, setIsProfileClicked] = useState<boolean>(false);
 
-  
+  // Create a ref for the profile menu
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLAnchorElement>(null);
 
-  // Create a ref for the burger menu
-  const profileMenuRef= useRef<HTMLDivElement>(null)
-
-  // Handle clicks outside of the burger menu
-  useEffect(()=>{
-    const handleClickOutside = ()=>{
-      if(profileMenuRef.current && !profileMenuRef.current.contains(event?.target as Node)){
-        // Close the burger menu
-        setIsProfileClicked(false)
+  // Handle clicks outside of the profile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Close the menu if clicking outside the profile menu and profile button
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileClicked(false);
       }
-    }
-    
-    // Add event listener when the bruger menu is open
-    if(isProfileClicked){
-      document.addEventListener("mousedown", handleClickOutside)
-    }else{
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-
-     // Cleanup the event listener when component unmounts or menu is closed
-    return ()=>{
-      document.removeEventListener("mousedown", handleClickOutside)
     };
-  }, [isProfileClicked]
-)
 
+    // Add event listener when the profile menu is open
+    if (isProfileClicked) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup the event listener when component unmounts or menu is closed
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileClicked]);
 
   return (
     <>
       <Nav className="fixed">
-      <NavLink href="/"><Store/></NavLink>
+        <NavLink href="/">
+          <Store />
+        </NavLink>
         <div className="flex justify-center mx-auto">
-          <NavLink className="hidden md:flex" href="/products">Products</NavLink>
-          <NavLink className="hidden md:flex" href="/orders">My Orders</NavLink>
+          <NavLink className="hidden md:flex" href="/products">
+            Products
+          </NavLink>
+          <NavLink className="hidden md:flex" href="/orders">
+            My Orders
+          </NavLink>
         </div>
         <div className="inline-flex justify-center text-center align-center space-x-2">
           <div className="hidden md:flex items-center space-x-2">
             <a
+              ref={profileButtonRef} // Reference the profile button
               href="#"
               className="flex text-white w-full text-nowrap pr-2"
               onClick={() => setIsProfileClicked((prev) => !prev)} // Toggle visibility on click
@@ -66,27 +75,36 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
               Hello, {session?.user?.name || "Guest"}
             </a>
             {isProfileClicked && (
-              <div ref={profileMenuRef} className="absolute top-[3.5rem] right-[4.5rem] bg-white p-2 shadow-lg">
-                {session?.user ? <div className="space-y-2 mt-5">
-                  <NavLink
-                    href={`/user`}
-                    className="h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white text-nowrap px-auto focus:bg-white focus:text-black"
-                  >
-                    My Account
-                    <div className="px-2">
-                      {/* User icon */}
-                      <User />
-                    </div>
-                  </NavLink>
-                <UserSignOut />
-                </div> : <UserSignIn />}
+              <div
+                ref={profileMenuRef}
+                className="absolute top-[3.5rem] right-[4.5rem] bg-white p-2 shadow-lg"
+              >
+                {session?.user ? (
+                  <div className="space-y-2 mt-5">
+                    <NavLink
+                      href={`/user`}
+                      className="h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white text-nowrap px-auto focus:bg-white focus:text-black"
+                    >
+                      My Account
+                      <div className="px-2">
+                        {/* User icon */}
+                        <User />
+                      </div>
+                    </NavLink>
+                    <UserSignOut />
+                  </div>
+                ) : (
+                  <UserSignIn />
+                )}
               </div>
             )}
           </div>
 
           {/* Pass session data to the BurgerMenu */}
           <BurgerMenu session={session} />
-          <NavLink href="/cart"><CartCounter/></NavLink>
+          <NavLink href="/cart">
+            <CartCounter />
+          </NavLink>
         </div>
       </Nav>
 

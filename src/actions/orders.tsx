@@ -65,39 +65,85 @@ export async function emailOrderHistory(prevState:unknown, formData:FormData):Pr
     return { message: "Check your email to view your order history" }
 }
 
-export async function createPaymentIntent(email:string, productId:string, discountCodeId?:string){
-    
-    const product = await db.product.findUnique({where:{id:productId}});
-    
-    if(product==null) return {error:"Unexpected Error"}
-
-    const discountCode = discountCodeId==null ? null : await db.discountCode.findUnique({where:{id: discountCodeId, ...usableDiscountCodeWhere(product.id)}})
-
-    if(discountCode==null && discountCodeId != null){
-        return { error: "Coupon has expired"}
-    }
-    
-    const existingOrder = await db.order.findFirst({
-          where: { user: { email }, productId },
-          select: { id: true },
-        })
-
-    if (existingOrder!=null) {
-      return {
-        error:         
-        "You have already purchased this product. Try downloading it from the My Orders page"
+export async function createPaymentIntent(
+    email: string,
+    productId?: string, // Make this optional for single product checkouts
+    discountCodeId?: string,
+    cart?: { id: string; priceInCents: number; quantity: number }[] // Cart for multi-product checkout
+  ) {
+    let amount = 0;
+  
+    // Handle single-product checkout
+    if (productId) {
+      const product = await db.product.findUnique({ where: { id: productId } });
+      
+      if (!product) {
+        return { error: "Product not found" };
       }
-    }
-
-    const amount = discountCode == null ? product.priceInCents : getDiscountedAmount(discountCode, product.priceInCents)
-    const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: "USD",
-        metadata: { productId: product.id, discountCodeId: discountCode?.id || null },
+  
+      const discountCode = discountCodeId
+        ? await db.discountCode.findUnique({
+            where: { id: discountCodeId, ...usableDiscountCodeWhere(product.id) },
+          })
+        : null;
+  
+      if (discountCodeId && !discountCode) {
+        return { error: "Coupon has expired or is invalid" };
+      }
+  
+      const existingOrder = await db.order.findFirst({
+        where: { user: { email }, productId },
+        select: { id: true },
       });
-    
-      if (paymentIntent.client_secret == null) {
-        return {error: "Unknow error "}
+  
+      if (existingOrder) {
+        return {
+          error: "You have already purchased this product. Try downloading it from the My Orders page",
+        };
       }
-      return {clientSecret: paymentIntent.client_secret}
-}
+  
+      amount = discountCode
+        ? getDiscountedAmount(discountCode, product.priceInCents)
+        : product.priceInCents;
+    }
+  
+    // Handle cart checkout
+    if (cart && cart.length > 0) {
+      for (const cartItem of cart) {
+        const product = await db.product.findUnique({ where: { id: cartItem.id } });
+        if (!product) return { error: `Product with ID ${cartItem.id} not found` };
+  
+        const existingOrder = await db.order.findFirst({
+          where: { user: { email }, productId: cartItem.id },
+          select: { id: true },
+        });
+  
+        if (existingOrder) {
+          return {
+            error: `You have already purchased the product with ID ${cartItem.id}. Please check your orders.`,
+          };
+        }
+  
+        // Add product price to total (multiplied by quantity)
+        amount += cartItem.priceInCents * cartItem.quantity;
+      }
+    }
+  
+    // Create the payment intent for the total amount (single product or cart)
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "USD",
+      metadata: {
+        productId: productId || null,
+        cart: cart ? JSON.stringify(cart.map(item => ({ id: item.id, quantity: item.quantity }))) : null,
+        discountCodeId: discountCodeId || null,
+      },
+    });
+  
+    if (!paymentIntent.client_secret) {
+      return { error: "Unknown error occurred" };
+    }
+  
+    return { clientSecret: paymentIntent.client_secret };
+  }
+  

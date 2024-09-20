@@ -32,5 +32,3 @@ function getDiscountCode(coupon:string,productId:string){
     select:{id:true, discountAmount:true, discountType:true},
     where: {...usableDiscountCodeWhere, code:coupon}})
 }
-
-//1:00:18 / 1:26:48

@@ -11,46 +11,44 @@ import OrderInformation from "./components/OrderInformation";
 import crypto from "crypto"
 
 type PurchaseReceiptEmailProps = {
-  product: {
-    name: string;
-    imagePath:string
-    description:string
-  };
-  order: {
-    id: string;
-    createdAt: Date;
-    pricePaidInCents: number;
-  };
-  downloadVerificationId:string
+  orders: {
+    order: {
+      id: string;
+      pricePaidInCents: number;
+      createdAt: Date;
+    };
+    product: {
+      name: string;
+      imagePath: string;
+      description: string;
+    };
+    downloadVerificationId: string;  // This will receive the value of 'downloadVerification.id'
+  }[];
 };
 
-PurchaseReceiptEmail.PreviewProps = {
-  product: { name: "Product name",imagePath:"/products/90ddc519-9ddc-4991-91f1-3b31d07b995d-treeoflife2.jpg", description:"some description"},
-  order: { 
-    id:crypto.randomUUID(), 
-    createdAt:new Date(),
-    pricePaidInCents:10000,
-    },
-    downloadVerificationId:crypto.randomUUID()
-} satisfies PurchaseReceiptEmailProps;
-
-export default function PurchaseReceiptEmail({
-  product,
-  order,
-  downloadVerificationId
-}: PurchaseReceiptEmailProps) {
+export default function PurchaseReceiptEmail({ orders }: PurchaseReceiptEmailProps) {
   return (
     <Html>
-      <Preview>Download {product.name} and view receipt</Preview>
+      <Preview>Your Purchase Receipt</Preview>
       <Tailwind>
         <Head />
         <Body className="font-sans bg-white">
           <Container>
-            <Heading>Purchase Receipt</Heading>
-            <OrderInformation order={order} product={product} downloadVerificationId={downloadVerificationId}/>
+            <Heading>Thank you for your purchase!</Heading>
+            {orders.map(({ order, product, downloadVerificationId }) => (
+              <div key={order.id}>
+                <OrderInformation
+                  order={order}
+                  product={product}
+                  downloadVerificationId={downloadVerificationId}  // Use it here as well
+                />
+              </div>
+            ))}
           </Container>
         </Body>
       </Tailwind>
     </Html>
   );
 }
+
+

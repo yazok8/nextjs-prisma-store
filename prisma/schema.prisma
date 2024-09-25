@@ -1,6 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// This is your Prisma schema file
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,7 +18,7 @@ model Product {
   isAvailableForPurchase Boolean                @default(true)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
-  orders                 Order[]
+  orders                 OrderProduct[]         // Many-to-many relation with OrderProduct
   downloadVerifications  DownloadVerification[]
   discountCode           DiscountCode[]
 }
@@ -42,16 +40,17 @@ model User {
 model Order {
   id               String        @id @default(uuid())
   pricePaidInCents Int
+  currency         String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   userId           String
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId        String
-  product          Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
   DiscountCode     DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
   discountCodeId   String?
+  status           String?
+  sessionId        String        @unique
+  products         OrderProduct[] // Reference to OrderProduct for the many-to-many relationship
 }
-
 
 model DownloadVerification {
   id        String   @id @default(uuid())
@@ -80,4 +79,14 @@ model DiscountCode {
 enum DiscountCodeType {
   PERCENTAGE
   FIXED
+}
+
+model OrderProduct {
+  orderId          String
+  productId        String
+  quantity         Int
+  pricePaidInCents Int
+  order            Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([orderId, productId])  // Composite key ensuring a unique combination of orderId and productId
 }

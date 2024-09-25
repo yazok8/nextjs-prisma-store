@@ -1,15 +1,14 @@
 "use client";
 
 import { useCart } from '@/app/webhooks/useCart';
-import { Elements, useElements, useStripe } from '@stripe/react-stripe-js';
-import { useRouter } from 'next/navigation';
+import { Elements, useStripe } from '@stripe/react-stripe-js';
+import { notFound, useRouter } from 'next/navigation';
 import React, { useEffect, useState, useCallback } from 'react';
 import dotenv from 'dotenv';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CartCheckoutForm from './CartCheckoutForm';
-import { createPaymentIntent } from '@/actions/orders';
 import { getCurrentUser } from '../../_actions/user';
 
 dotenv.config({ path: "./.env" });
@@ -45,24 +44,23 @@ export default function CheckoutClient({ product }: { product?: { id: string; pr
   }, []);
 
   useEffect(() => {
-    // Add a delay for cart initialization if needed
     if (cartProducts === null || cartProducts === undefined) {
       console.log("Cart is loading...");
-      setIsCartLoading(true); // Set cart loading state
+      setIsCartLoading(true); 
       return;
     }
-
+  
     async function initiatePayment() {
       try {
         setIsLoading(true);
-
+  
         const currentUser = await getCurrentUser();
         if (!currentUser?.email) {
           setError("User not logged in. Please log in to proceed.");
           setIsLoading(false);
           return;
         }
-
+  
         if (isSingleProductCheckout) {
           if (!product?.id) {
             setError("Product ID is missing for single product checkout.");
@@ -71,38 +69,30 @@ export default function CheckoutClient({ product }: { product?: { id: string; pr
           }
         } else {
           if (!cartProducts || cartProducts.length === 0) {
-            console.log("Cart Products:", cartProducts); // For debugging
+            console.log("Cart Products:", cartProducts);
             setError("No products in the cart.");
             setIsLoading(false);
             return;
           }
         }
-
-        // Transform cart products to include 'quantity' field if necessary
+  
         const transformedCart = cartProducts?.map(item => ({
           id: item.id,
-          name:item.name,
-          image:item.imagePath,
+          name: item.name,
+          image: item.imagePath,
           priceInCents: item.priceInCents,
-          quantity: item.Quantity ?? 1, // Ensure that 'quantity' is added
+          quantity: item.Quantity ?? 1,
         }));
-
-        // Create payment intent based on whether it's a single product or a cart checkout
-        const paymentIntent = await createPaymentIntent(
-          currentUser.email, // Use actual email from currentUser
-          isSingleProductCheckout ? product?.id : undefined, // Pass productId for single product checkout, or undefined for cart checkout
-          undefined, // No discount code provided in this case
-          isSingleProductCheckout ? undefined : transformedCart // Pass transformed cart for multi-product checkout
-        );
-
-        if (paymentIntent.error) {
+  
+        const paymentIntent = await handleCheckout(currentUser.email, transformedCart);
+  
+        if (paymentIntent?.error) {
           setError(paymentIntent.error);
           return;
         }
-
-        // Ensure clientSecret is valid before setting it
-        if (paymentIntent.clientSecret) {
-          setClientSecret(paymentIntent.clientSecret); // Only set if clientSecret is defined
+  
+        if (paymentIntent?.clientSecret) {
+          setClientSecret(paymentIntent.clientSecret);
         } else {
           setError("No client secret returned.");
         }
@@ -113,10 +103,48 @@ export default function CheckoutClient({ product }: { product?: { id: string; pr
         setIsLoading(false);
       }
     }
-
+  
     initiatePayment();
-    setIsCartLoading(false); // Once cartProducts is available, loading is complete
+    setIsCartLoading(false);
   }, [product, cartProducts, cartSubTotalAmount, isSingleProductCheckout]);
+  
+
+  /**
+   * The handleCheckout function can be added here to trigger the checkout session.
+   */
+  async function handleCheckout(email: string, cartItems: any) {
+    try {
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cartItems,
+          email,
+          isSingleProductCheckout,
+        }),
+      });
+  
+      if (!response.ok) {
+        const { error } = await response.json();
+        return { error };
+      }
+  
+      const { id } = await response.json();
+  
+      // Redirect to Stripe Checkout
+      const stripe = await stripePromise;
+      if(!stripe) return notFound();
+      await stripe.redirectToCheckout({ sessionId: id });
+  
+      return { clientSecret: id }; // Optionally return clientSecret
+    } catch (error) {
+      console.error('Error:', error);
+      return { error: 'An error occurred during checkout.' };
+    }
+  }
+  
 
   return (
     <>

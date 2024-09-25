@@ -39,7 +39,7 @@ export default function CartCheckoutForm({
   handleSetPaymentSuccess: (value: boolean) => void;
   isSingleProductCheckout: boolean;
   product?: { id: string; priceInCents: number };
-  cartProducts?: { id: string; name: string; priceInCents: number; Quantity: number }[];
+  cartProducts?: { id: string; name: string; priceInCents: number; Quantity: number; }[];
   totalAmount: number;
 }) {
   const stripe = useStripe();
@@ -60,7 +60,7 @@ export default function CartCheckoutForm({
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchaseSuccess`,
+        return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`,
       },
     });
 

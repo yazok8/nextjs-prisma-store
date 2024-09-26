@@ -15,6 +15,6 @@ export default function AdminLayout({
         <NavLink href="/admin/orders">Sales</NavLink>
         <NavLink href="/admin/discountCodes">Coupons</NavLink>
     </Nav>
-    <div className="container my-6">{children}</div>
+    <div className="container mt-20 mb-5">{children}</div>
     </>
   }

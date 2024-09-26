@@ -1,6 +1,6 @@
 "use client"
 
-import { Label } from "@radix-ui/react-label"
+
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { formatCurrency } from "@/lib/formatters"
@@ -10,6 +10,7 @@ import { addProduct, updateProduct } from "../../_actions/products"
 import { useFormState, useFormStatus } from "react-dom"
 import { Product } from "@prisma/client"
 import Image from "next/image"
+import { Label } from "@/components/ui/label"
 
 
 export function ProductForm({ product }: { product?: Product | null }) {

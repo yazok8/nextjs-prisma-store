@@ -1,95 +1,125 @@
+// src/app/api/create-payment-intent/route.ts
+
 import { getCurrentUser } from "@/app/(customerFacing)/_actions/user";
 import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_components/ProductDetails";
 import db from "@/db/db";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string,{
-    apiVersion: "2024-04-10"
-}); 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2024-04-10",
+});
 
-const calculateOrderAmount = (items:CartProductType[])=>{
-    const totalPrice = items.reduce((acc, item)=>{
-        const itemTotal = item.priceInCents * item.Quantity;
-        return acc + itemTotal
-    },0)
-    return totalPrice;
+const calculateOrderAmount = (items: CartProductType[]): number => {
+  const totalPrice = items.reduce((acc, item) => {
+    const itemTotal = item.priceInCents * item.Quantity;
+    return acc + itemTotal;
+  }, 0);
+  return totalPrice;
+};
+
+interface CreatePaymentIntentRequest {
+  items: CartProductType[];
+  payment_intent_id?: string;
+  discountCodeId?: string; // Optional
 }
 
-export async function POST(req:Request){
-    const currentUser = await getCurrentUser(); 
+export async function POST(req: Request) {
+  try {
+    const currentUser = await getCurrentUser();
 
-    if(!currentUser){
-        NextResponse.json({error:"Unauthorized"})
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json()
+    const body: CreatePaymentIntentRequest = await req.json();
+    const { items, payment_intent_id, discountCodeId } = body;
 
-    const {items, payment_intent_id} = body
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "No items provided" }, { status: 400 });
+    }
 
-    const total = calculateOrderAmount(items) / 100;
-    
-    const orderData = {
-        user: { connect: { id: currentUser?.id } },
+    const total = calculateOrderAmount(items)/100;
+
+    let paymentIntent: Stripe.PaymentIntent;
+
+    if (payment_intent_id) {
+      // **Update Existing Payment Intent**
+      await stripe.paymentIntents.update(payment_intent_id, {
+        amount: total,
+      });
+
+      // Retrieve the payment intent to get the client_secret
+      paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
+    } else {
+      // **Create New Payment Intent**
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: total,
+        currency: "usd",
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          userId: currentUser.id,
+          productIds: items.map((item) => item.id).join(","),
+          discountCodeId: discountCodeId || "",
+        },
+      });
+    }
+
+    // Start a transaction
+// Inside your transaction
+await db.$transaction(async (prisma) => {
+    // Upsert the order
+    await prisma.order.upsert({
+      where: { paymentIntentId: paymentIntent.id },
+      update: {
+        userId: currentUser.id,
         pricePaidInCents: total,
         currency: "usd",
         status: "pending",
         deliveryStatus: "pending",
-        paymentIntentId: payment_intent_id,
-        product: {
-          connect: { id: items[0].productId },  // Assuming items have a productId field
+        discountCodeId: discountCodeId || null, // Use scalar field
+      },
+      create: {
+        userId: currentUser.id,
+        paymentIntentId: paymentIntent.id,
+        pricePaidInCents: total,
+        currency: "usd",
+        status: "pending",
+        deliveryStatus: "pending",
+        discountCodeId: discountCodeId || undefined, // Use scalar field
+      },
+    });
+  
+    // Delete existing orderProducts for this order
+    await prisma.orderProduct.deleteMany({
+      where: {
+        order: {
+          paymentIntentId: paymentIntent.id,
         },
-        products: {
-          create: items.map((item:CartProductType) => ({
-            product: { connect: { id: item.id } },  // Assuming items have a productId
-            quantity: item.Quantity,  // Assuming items have a quantity field
-            price: item.priceInCents,  // Assuming items have a priceInCents field
-          })),
-        },
-      };
-      
-    
-    if(payment_intent_id){
-        //update the order
-        const current_intent = await stripe.paymentIntents.retrieve(payment_intent_id)
-        if(current_intent){
-            const updated_intent = await stripe.paymentIntents.update(payment_intent_id, 
-                {amount:total}
-            )
+      },
+    });
+  
+    // Create new orderProducts
+    const order = await prisma.order.findUnique({
+      where: { paymentIntentId: paymentIntent.id },
+    });
+  
+    await prisma.orderProduct.createMany({
+      data: items.map((item: CartProductType) => ({
+        orderId: order!.id,
+        productId: item.id,
+        quantity: item.Quantity,
+        price: item.priceInCents,
+      })),
+    });
+  });
+  
 
-            const [existing_order, update_order] = await Promise.all([
-                db.order.findFirst({
-                    where:{paymentIntentId:payment_intent_id}
-                }), 
-                db.order.update({
-                    where:{paymentIntentId:payment_intent_id}, 
-                    data:{
-                        pricePaidInCents:total, 
-                        products:items
-                    }
-                })
-            ])
-    
-            if(!existing_order){
-                return NextResponse.json({error: "Invalid Payment Intent"}, {status:400})
-            }
-            return NextResponse.json({paymentIntent:updated_intent})
-        }
+    // Respond with the payment intent details
+    return NextResponse.json({ paymentIntent });
+  } catch (error) {
+    console.error("Error creating or updating payment intent:", error);
 
-    }else{
-        //create payment intent
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount:total, 
-            currency:"usd", 
-            automatic_payment_methods:{enabled:true},
-        })
-        // create the order
-        orderData.paymentIntentId = paymentIntent.id
-        await db.order.create({
-            data: orderData
-        })
-        return NextResponse.json({paymentIntent})
-    }
-
-
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

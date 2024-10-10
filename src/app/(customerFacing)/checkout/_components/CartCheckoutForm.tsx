@@ -1,8 +1,9 @@
+// src/app/(customerFacing)/checkout/_components/CartCheckoutForm.tsx
+
 "use client";
 
 import { useCart } from "@/app/webhooks/useCart";
 import {
-  Elements,
   LinkAuthenticationElement,
   PaymentElement,
   AddressElement,
@@ -11,7 +12,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/formatters";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useState } from "react";
 import {
   Card,
   CardContent,
@@ -20,35 +21,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckIcon } from "lucide-react";
 
-interface CheckoutFormInterface {
+interface CartCheckoutFormProps {
   clientSecret: string;
   handleSetPaymentSuccess: (value: boolean) => void;
+  totalAmount: number;
 }
 
 export default function CartCheckoutForm({
   clientSecret,
   handleSetPaymentSuccess,
-  isSingleProductCheckout,
-  product,
-  cartProducts,
   totalAmount,
-}: {
-  clientSecret: string;
-  handleSetPaymentSuccess: (value: boolean) => void;
-  isSingleProductCheckout: boolean;
-  product?: { id: string; priceInCents: number };
-  cartProducts?: { id: string; name: string; priceInCents: number; Quantity: number }[];
-  totalAmount: number;
-}) {
+}: CartCheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState<string>();
-  
-  const formattedPrice = formatCurrency(totalAmount);
+  // Removed handleClearCart and handleSetPaymentIntent since they will be called on the redirect page
+
+  const total = totalAmount / 100;
+  const formattedPrice = formatCurrency(total);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -57,74 +50,54 @@ export default function CartCheckoutForm({
 
     setIsLoading(true);
 
-    const result = await stripe.confirmPayment({
+    const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchaseSuccess`,
+        return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`,
+        // Optionally include receipt_email: email,
       },
     });
 
-    if (result.error) {
+    if (error) {
       toast({
-        title: 'Payment Error',
-        description: result.error.message,
-        variant: 'destructive',
+        title: "Payment Error",
+        description: error.message,
+        variant: "destructive",
       });
       setIsLoading(false);
       return;
     }
 
-    toast({
-      title: "Checkout Success",
-      description: "Payment completed successfully!",
-    });
-
-    handleSetPaymentSuccess(true);
+    // The code below may not execute due to the redirection
     setIsLoading(false);
   };
+
   return (
-    <>
-    <form className="shadow-xl my-8" onSubmit={handleSubmit} id="payment-form">
-       {/* Display single product or cart items */}
-           {/* {isSingleProductCheckout ? (
-            <>
-            <div>{product?.name}</div> 
-            </>
-          ) : (
-            <ul>
-              {cartProducts?.map((item) => (
-                <li key={item.id}>
-                  {item.name} - {item.Quantity} x {formatCurrency(item.priceInCents / 100)}
-                </li>
-              ))}
-            </ul>
-          )} */}
+    <form
+      className="shadow-xl my-8"
+      onSubmit={handleSubmit}
+      id="payment-form"
+    >
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl mx-2">
-            {isSingleProductCheckout ? "Checkout - Single Product" : "Checkout - Cart"}
-          </CardTitle>
+          <CardTitle className="text-xl mx-2">Cart Checkout</CardTitle>
         </CardHeader>
         <CardContent>
-        <h2 className="font-semibold mb-2"> Address Information</h2>
-        <AddressElement
-              options={{
-                mode: "shipping",
-                allowedCountries: ["US", "CA"],
-              }}
-            />
-            <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
-            <LinkAuthenticationElement
+          <h2 className="font-semibold mb-2">Address Information</h2>
+          <AddressElement
+            options={{
+              mode: "shipping",
+              allowedCountries: ["US", "CA"],
+            }}
+          />
+          <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
+          <LinkAuthenticationElement
             onChange={(e) => setEmail(e.value.email)}
           />
-
-          <div className="py-4 text-center text-slate-700 text-xl font-bold">
-            Total: {formattedPrice}
-          </div>
         </CardContent>
         <CardFooter>
           <Button
-            className="w-full"
+            className="w-full text-2xl"
             size="lg"
             disabled={isLoading || !stripe || !elements}
           >
@@ -133,6 +106,5 @@ export default function CartCheckoutForm({
         </CardFooter>
       </Card>
     </form>
-    </>
   );
 }

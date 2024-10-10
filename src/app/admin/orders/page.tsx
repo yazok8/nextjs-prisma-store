@@ -15,7 +15,7 @@ function getOrders() {
   return db.order.findMany({select:
     {id:true,
         pricePaidInCents:true,
-        product:{select:{name:true}},
+        orderProducts:{select:{product:true}},
         user:{select:{email:true}},
         DiscountCode: {select:{code:true}}
     },
@@ -51,7 +51,11 @@ async function OrdersTable() {
       <TableBody>
         {orders.map(order=>(
           <TableRow key={order.id}>
-            <TableCell>{order.product.name}</TableCell>
+              <TableCell>
+              {order.orderProducts.length > 0
+                ? order.orderProducts.map((op) => op.product.name).join(", ")
+                : "No products"}
+            </TableCell>
             <TableCell>{order.user.email}</TableCell>
             <TableCell>{formatCurrency(order.pricePaidInCents/100)}</TableCell>
             <TableCell>{order.DiscountCode==null ? <Minus/>: order.DiscountCode.code}</TableCell>

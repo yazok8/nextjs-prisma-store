@@ -1,65 +1,87 @@
+// src/app/webhooks/useCart.tsx
+
+"use client";
+
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useState,
+  useRef,
+  ReactNode,
 } from "react";
 import { CartProductType } from "../(customerFacing)/products/[id]/purchase/_components/ProductDetails";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckIcon, CircleXIcon, CrossIcon, X } from "lucide-react";
+import { CheckIcon, CircleXIcon } from "lucide-react";
 
-// Define the CartContext value using typescript
+// Define the type for the toast function
+type ToastFunction = (options: { title: ReactNode; variant?: "destructive" | "default" }) => void;
+
+// Define a custom Router type with the methods you need
+type Router = {
+  push: (url: string) => void;
+};
+
+// Define the CartContext value using TypeScript
 type CartContextType = {
-  cartTotalQty: number; // The total quantity of items in the cart
+  cartTotalQty: number;
   cartProducts: CartProductType[] | null;
   handleAddProductToCart: (product: CartProductType) => void;
   handleRemoveCartProduct: (product: CartProductType) => void;
   handleCartQuantityIncrease: (product: CartProductType) => void;
   handleCartQuantityDecrease: (product: CartProductType) => void;
   handleClearCart: () => void;
-  cartSubTotalAmount:number;
-  paymentIntent:string | null;
-  handleSetPaymentIntent: (val:string|null) => void
+  cartSubTotalAmount: number;
+  paymentIntent: string | null;
+  handleSetPaymentIntent: (val: string | null) => void;
+  clientSecret: string;
+  initializePaymentIntent: (router: Router, toast: ToastFunction) => void;
 };
 
 // Create a context with the defined type, initialized to null
 export const CartContext = createContext<CartContextType | null>(null);
 
 interface Props {
-  [propName: string]: any; // Allow the provider to accept any additional props
+  [propName: string]: any;
 }
 
-// The CartContextProvider component will wrap parts of the app that need access to the cart context
+// The CartContextProvider component
 export const CartContextProvider = (props: Props) => {
   const { toast } = useToast();
 
-  // State to keep track of the total quantity of items in the cart
+  // State variables
   const [cartTotalQty, setCartTotalQty] = useState(0);
-  const [cartSubTotalAmount, setCartSubTotalAmount] = useState(0)
+  const [cartSubTotalAmount, setCartSubTotalAmount] = useState(0);
   const [cartProducts, setCartProducts] = useState<CartProductType[] | null>(
     null
   );
+  const [paymentIntent, setPaymentIntent] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState("");
 
-  const [paymentIntent, setPaymentIntent] = useState<string | null>(null)
+  // Use a ref to keep track of initialization
+  const initialized = useRef(false);
 
-
-
+  // Load cart products and payment intent from local storage on mount
   useEffect(() => {
-    const cartItems: any = localStorage.getItem("eStoreCartItems");
-    const cItems: CartProductType[] | null = JSON.parse(cartItems);
-    const eShopPaymentIntent: any = localStorage.getItem('eShopPaymentIntent');
-    const paymentIntent: string | null = JSON.parse(eShopPaymentIntent)
-
+    const cartItems = localStorage.getItem("eStoreCartItems");
+    const cItems: CartProductType[] | null = cartItems
+      ? JSON.parse(cartItems)
+      : null;
+    const eShopPaymentIntent = localStorage.getItem("eShopPaymentIntent");
+    const storedPaymentIntent: string | null = eShopPaymentIntent
+      ? JSON.parse(eShopPaymentIntent)
+      : null;
 
     setCartProducts(cItems);
-    setPaymentIntent(paymentIntent)
+    setPaymentIntent(storedPaymentIntent);
   }, []);
 
+  // Calculate totals whenever cartProducts change
   useEffect(() => {
     const getTotals = () => {
-      if (cartProducts) {
-        const { total, qty } = cartProducts?.reduce(
+      if (cartProducts && cartProducts.length > 0) {
+        const { total, qty } = cartProducts.reduce(
           (acc, item) => {
             const itemTotal = item.priceInCents * item.Quantity;
 
@@ -73,13 +95,17 @@ export const CartContextProvider = (props: Props) => {
             qty: 0,
           }
         );
-        setCartTotalQty(qty)
-        setCartSubTotalAmount(total)
+        setCartTotalQty(qty);
+        setCartSubTotalAmount(total);
+      } else {
+        setCartTotalQty(0);
+        setCartSubTotalAmount(0);
       }
     };
     getTotals();
   }, [cartProducts]);
 
+  // Function to add a product to the cart
   const handleAddProductToCart = useCallback(
     (product: CartProductType) => {
       setCartProducts((prev) => {
@@ -95,7 +121,7 @@ export const CartContextProvider = (props: Props) => {
             <div className="flex items-center">
               <CheckIcon className="mr-2" />
               <span className="first-letter:capitalize">
-                successfully updated to cart
+                Successfully added to cart
               </span>
             </div>
           ),
@@ -104,9 +130,10 @@ export const CartContextProvider = (props: Props) => {
         return updatedCart;
       });
     },
-    [cartProducts]
+    [toast]
   );
 
+  // Function to remove a product from the cart
   const handleRemoveCartProduct = useCallback(
     (product: CartProductType) => {
       if (cartProducts) {
@@ -118,7 +145,7 @@ export const CartContextProvider = (props: Props) => {
           title: (
             <div className="flex items-center">
               <CircleXIcon className="mr-2" />
-              <span className="first-letter:capitalize">product removed</span>
+              <span className="first-letter:capitalize">Product removed</span>
             </div>
           ),
           variant: "destructive",
@@ -129,19 +156,19 @@ export const CartContextProvider = (props: Props) => {
         );
       }
     },
-    [cartProducts]
+    [cartProducts, toast]
   );
 
+  // Function to increase the quantity of a product in the cart
   const handleCartQuantityIncrease = useCallback(
     (product: CartProductType) => {
-      let updatedCart;
       if (product.Quantity === 99) {
         return toast({
           title: (
             <div className="flex items-center text-md text-white">
               <CircleXIcon className="mr-2" />
               <span className="first-letter:capitalize">
-                oops maximun quantity reached
+                Maximum quantity reached
               </span>
             </div>
           ),
@@ -150,7 +177,7 @@ export const CartContextProvider = (props: Props) => {
       }
 
       if (cartProducts) {
-        updatedCart = [...cartProducts];
+        const updatedCart = [...cartProducts];
 
         const existingIndex = cartProducts.findIndex(
           (item) => item.id === product.id
@@ -165,19 +192,19 @@ export const CartContextProvider = (props: Props) => {
         localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
       }
     },
-    [cartProducts]
+    [cartProducts, toast]
   );
 
+  // Function to decrease the quantity of a product in the cart
   const handleCartQuantityDecrease = useCallback(
     (product: CartProductType) => {
-      let updatedCart;
       if (product.Quantity === 1) {
         return toast({
           title: (
             <div className="flex items-center text-md text-white">
               <CircleXIcon className="mr-2" />
               <span className="first-letter:capitalize">
-                oops minimum quantity reached
+                Minimum quantity reached
               </span>
             </div>
           ),
@@ -186,7 +213,7 @@ export const CartContextProvider = (props: Props) => {
       }
 
       if (cartProducts) {
-        updatedCart = [...cartProducts];
+        const updatedCart = [...cartProducts];
 
         const existingIndex = cartProducts.findIndex(
           (item) => item.id === product.id
@@ -201,20 +228,69 @@ export const CartContextProvider = (props: Props) => {
         localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
       }
     },
-    [cartProducts]
+    [cartProducts, toast]
   );
 
+  // Function to clear the cart
   const handleClearCart = useCallback(() => {
     setCartProducts(null);
     setCartTotalQty(0);
-    localStorage.setItem("eStoreCartItems", JSON.stringify(null));
-  }, [cartProducts]);
+    setCartSubTotalAmount(0);
+    localStorage.removeItem("eStoreCartItems");
+  }, []);
 
-  const handleSetPaymentIntent = useCallback((val:string | null)=>{
-    setPaymentIntent(val)
-    localStorage.setItem('eShopPaymentIntent', JSON.stringify(val))
-  },[paymentIntent]
-);
+  // Function to set the paymentIntent and store it in localStorage
+  const handleSetPaymentIntent = useCallback((val: string | null) => {
+    setPaymentIntent(val);
+    localStorage.setItem("eShopPaymentIntent", JSON.stringify(val));
+  }, []);
+
+  // Function to initialize the payment intent
+  const initializePaymentIntent = useCallback(
+    async (router: Router, toast: ToastFunction) => {
+      if (initialized.current || !cartProducts || cartProducts.length === 0)
+        return;
+  
+      initialized.current = true;
+  
+      try {
+        const res = await fetch("/api/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            items: cartProducts,
+            payment_intent_id: paymentIntent,
+          }),
+        });
+  
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+  
+        const data = await res.json();
+  
+        handleSetPaymentIntent(data.paymentIntent.id);
+        setClientSecret(data.paymentIntent.client_secret);
+        localStorage.setItem("eShopClientSecret", JSON.stringify(data.paymentIntent.client_secret));
+      } catch (error) {
+        console.error("Error initializing payment intent:", error);
+        toast({
+          title: (
+            <div className="flex items-center">
+              <CircleXIcon className="mr-2" />
+              <span className="first-letter:capitalize">
+                Something went wrong!
+              </span>
+            </div>
+          ),
+          variant: "destructive",
+        });
+      }
+    },
+    [cartProducts, paymentIntent, handleSetPaymentIntent]
+  );
 
   // The value that will be provided to consuming components
   const value = {
@@ -227,7 +303,9 @@ export const CartContextProvider = (props: Props) => {
     handleCartQuantityDecrease,
     handleClearCart,
     paymentIntent,
-    handleSetPaymentIntent
+    handleSetPaymentIntent,
+    clientSecret,
+    initializePaymentIntent,
   };
 
   // Render the context provider with the value, passing along any additional props

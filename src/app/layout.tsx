@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import Provider from "@/components/Provider";
-import CartProvider from "@/Providers/CartProvider";
+import { CartContextProvider } from "@/app/webhooks/useCart"; 
 import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"],variable: "--font-sans" });
@@ -21,15 +21,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-       <Provider>
-        <CartProvider>
-        <body>
-      <main className={cn("min-h-screen bg-background font-sans antialiased",inter.variable)}>{children}</main>
-      <Toaster />
-      <Footer/>
+      <body className={cn("min-h-screen flex flex-col bg-background font-sans antialiased", inter.variable)}>
+        <Provider>
+          <CartContextProvider>
+            <main className="flex-grow">{children}</main>
+            <Toaster />
+            <Footer />
+          </CartContextProvider>
+        </Provider>
       </body>
-        </CartProvider>
-      </Provider>
     </html>
   );
 }

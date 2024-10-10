@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { formatCurrency, formatDiscountCode } from "@/lib/formatters";
 import {
+  AddressElement,
   Elements,
   LinkAuthenticationElement,
   PaymentElement,
@@ -174,6 +175,12 @@ function Form({ priceInCents, productId, discountCode }: formProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+        <AddressElement
+            options={{
+              mode: "shipping",
+              allowedCountries: ["US", "CA"],
+            }}
+          />
           <PaymentElement />
           <LinkAuthenticationElement
             onChange={(e) => setEmail(e.value.email)}

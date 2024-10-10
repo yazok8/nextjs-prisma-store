@@ -20,9 +20,9 @@ model Product {
   isAvailableForPurchase Boolean                @default(true)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
-  orders                 Order[]
-  downloadVerifications  DownloadVerification[]
-  discountCode           DiscountCode[]
+  orderProducts          OrderProduct[]         // Relation to OrderProduct
+  downloadVerifications  DownloadVerification[] // Relation to DownloadVerification
+  discountCodes          DiscountCode[]         // Relation to DiscountCode
 }
 
 model User {
@@ -36,7 +36,7 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   isAdmin        Boolean   @default(false)
-  orders         Order[]
+  orders         Order[]   // Relation to Order
 }
 
 model Order {
@@ -46,42 +46,26 @@ model Order {
   updatedAt        DateTime      @updatedAt
   userId           String
   user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId        String
-  product          Product?       @relation(fields: [productId], references: [id], onDelete: Restrict)
-  cartProductId    String         
-  products         CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Restrict)
+  currency         String?
   status           String?
   deliveryStatus   String?
+  paymentIntentId  String?       @unique
+  orderProducts    OrderProduct[] // Relation for multiple products
   DiscountCode     DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
   discountCodeId   String?
-  paymentIntentId  String?       @unique
   addressId        String?
   Address          Address?      @relation(fields: [addressId], references: [id], onDelete: Cascade)
 }
 
-model CartProduct{
-    id               String        @id @default(uuid())
-    name             String
-    description      String
-    category         String?
-    brand            String?
-    selectedImg      String?
-    quantity         String?
-    price            Float
-    orders           Order[]
+model OrderProduct {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  price     Int
 }
-
-model Address{
-  id               String        @id @default(uuid())
-  city             String?
-  country          String?
-  line1            String?
-  line2            String?
-  postal_code      String?
-  state            String?
-  order            Order[]
-}
-
 
 model DownloadVerification {
   id        String   @id @default(uuid())
@@ -102,9 +86,19 @@ model DiscountCode {
   createdAt      DateTime         @default(now())
   limit          Int?
   expiresAt      DateTime?
+  products       Product[]        // Many-to-many relation to Product
+  orders         Order[]          // Many-to-many relation to Order
+}
 
-  products Product[]
-  orders   Order[]
+model Address {
+  id               String   @id @default(uuid())
+  city             String?
+  country          String?
+  line1            String?
+  line2            String?
+  postal_code      String?
+  state            String?
+  order            Order[]
 }
 
 enum DiscountCodeType {

@@ -31,7 +31,7 @@ export type CartProductType = {
 };
 
 export default function ProductDetails({ product }: ProductProps) {
-  const { handleAddProductToCart, cartProducts } = useCart();
+  const { handleAddProductToCart, cartProducts, handleRemoveCartProduct } = useCart();
 
   const [isProductInCart, setIsProductInCart] = useState(false);
 
@@ -119,11 +119,6 @@ export default function ProductDetails({ product }: ProductProps) {
             <span className="text-slate-500 font-semibold">Brand</span>
           </div>
           <HorizontalLine />
-          <SetQuantity
-            cartProduct={cartProduct}
-            handleCartQuantityIncrease={handleCartQuantityIncrease}
-            handleCartQuantityDecrease={handleCartQuantityDecrease}
-          />
           <div className="space-y-3 mt-5">
             {isProductInCart ? (
               <div className="flex-col flex space-y-3">
@@ -131,6 +126,13 @@ export default function ProductDetails({ product }: ProductProps) {
                   <CheckCircle className="text-teal-400" size={20} />
                   Product added to cart
                 </p>
+                <Button
+                  size="lg"
+                  className="text-center flex w-52"
+                  onClick={() => handleRemoveCartProduct(cartProduct)}
+                >
+                  Remove From Cart
+                </Button>
                 <Button
                   size="lg"
                   className="w-44 ml-0 text-center flex md:w-52"
@@ -141,6 +143,11 @@ export default function ProductDetails({ product }: ProductProps) {
               </div>
             ) : (
               <>
+                       <SetQuantity
+            cartProduct={cartProduct}
+            handleCartQuantityIncrease={handleCartQuantityIncrease}
+            handleCartQuantityDecrease={handleCartQuantityDecrease}
+          />
                 <Button
                   size="lg"
                   className="text-center flex w-52"

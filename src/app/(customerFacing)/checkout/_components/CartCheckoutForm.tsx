@@ -2,14 +2,7 @@
 
 "use client";
 
-import { useCart } from "@/app/webhooks/useCart";
-import {
-  LinkAuthenticationElement,
-  PaymentElement,
-  AddressElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
+import { useStripe, useElements, PaymentElement, AddressElement } from "@stripe/react-stripe-js";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/formatters";
 import React, { FormEvent, useState } from "react";
@@ -21,32 +14,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CartProductType } from "../../products/[id]/purchase/_components/ProductDetails";
 
 interface CartCheckoutFormProps {
-  clientSecret: string;
-  handleSetPaymentSuccess: (value: boolean) => void;
   totalAmount: number;
+  products: CartProductType[]
 }
 
-export default function CartCheckoutForm({
-  clientSecret,
-  handleSetPaymentSuccess,
-  totalAmount,
-}: CartCheckoutFormProps) {
+export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState<string>();
-  // Removed handleClearCart and handleSetPaymentIntent since they will be called on the redirect page
 
-  const total = totalAmount / 100;
-  const formattedPrice = formatCurrency(total);
+  const formattedPrice = formatCurrency(totalAmount / 100);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!stripe || !elements || !email) return;
+    if (!stripe || !elements) return;
 
     setIsLoading(true);
 
@@ -54,7 +40,7 @@ export default function CartCheckoutForm({
       elements,
       confirmParams: {
         return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`,
-        // Optionally include receipt_email: email,
+        // Optionally include receipt_email if you have it
       },
     });
 
@@ -68,16 +54,12 @@ export default function CartCheckoutForm({
       return;
     }
 
-    // The code below may not execute due to the redirection
+    // The redirect will happen automatically
     setIsLoading(false);
   };
 
   return (
-    <form
-      className="shadow-xl my-8"
-      onSubmit={handleSubmit}
-      id="payment-form"
-    >
+    <form className="shadow-xl my-8" onSubmit={handleSubmit} id="payment-form">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl mx-2">Cart Checkout</CardTitle>
@@ -91,9 +73,6 @@ export default function CartCheckoutForm({
             }}
           />
           <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
-          <LinkAuthenticationElement
-            onChange={(e) => setEmail(e.value.email)}
-          />
         </CardContent>
         <CardFooter>
           <Button

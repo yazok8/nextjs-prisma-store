@@ -3,20 +3,22 @@
 import db from "@/db/db";
 import { notFound, redirect } from "next/navigation";
 import fs from "fs/promises";
-import { File } from "buffer";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-const fileSchema = z.instanceof(File, { message: "Required" });
-const imageSchema = fileSchema.refine(file => file.size === 0 || file.type.startsWith("image/"));
+const imageSchema = z
+  .custom<File>((file) => file instanceof File && (file.size === 0 || file.type.startsWith("image/")), {
+    message: "Required",
+  })
+  .optional();
 
 const editSchema = z.object({
   name: z.string().min(1),
   email: z.string().min(1),
   address: z.string().min(1),
-  image: imageSchema.optional(),
+  image: imageSchema,
 });
 
 export async function updateUser(id: string, prevState: unknown, formData: FormData) {
@@ -41,17 +43,17 @@ export async function updateUser(id: string, prevState: unknown, formData: FormD
         console.log(`Failed to delete old profile image: ${error}`);
       }
     }
-    
+
     profileImage = `/user/${crypto.randomUUID()}-${data.image.name}`;
-    await fs.writeFile(
-      `public${profileImage}`,
-      Buffer.from(await data.image.arrayBuffer())
-    );
+
+    // Convert ArrayBuffer to Uint8Array and write the file
+    const arrayBuffer = await data.image.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    await fs.writeFile(`public${profileImage}`, uint8Array);
   }
 
-  if(!data.address && !data.image){
-    console.log("some user details are missing");
-    
+  if (!data.address && !data.image) {
+    console.log("Some user details are missing");
   }
 
   await db.user.update({
@@ -64,11 +66,12 @@ export async function updateUser(id: string, prevState: unknown, formData: FormD
     },
   });
 
-  revalidatePath("/")
-  revalidatePath("/user")
+  revalidatePath("/");
+  revalidatePath("/user");
 
-  redirect("/user")
+  redirect("/user");
 }
+
 
 export async function getSession() {
   return await getServerSession(authOptions);

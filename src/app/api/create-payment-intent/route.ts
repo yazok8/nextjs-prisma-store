@@ -39,87 +39,91 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }
 
-    const total = calculateOrderAmount(items)/100;
+    // Calculate the total amount in cents (Stripe expects amount in cents)
+    const totalAmountInCents = calculateOrderAmount(items);
 
+    // Start a transaction to create or update the order and order products
+    const order = await db.$transaction(async (prisma) => {
+      // Upsert the order
+      const order = await prisma.order.upsert({
+        where: { paymentIntentId: payment_intent_id || "" },
+        update: {
+          userId: currentUser.id,
+          pricePaidInCents: totalAmountInCents,
+          currency: "usd",
+          status: "pending",
+          deliveryStatus: "pending",
+          discountCodeId: discountCodeId || null,
+        },
+        create: {
+          userId: currentUser.id,
+          paymentIntentId: "", // Temporary, will update after creating Payment Intent
+          pricePaidInCents: totalAmountInCents,
+          currency: "usd",
+          status: "pending",
+          deliveryStatus: "pending",
+          discountCodeId: discountCodeId || undefined,
+        },
+      });
+
+      // Delete existing orderProducts for this order if updating
+      if (payment_intent_id) {
+        await prisma.orderProduct.deleteMany({
+          where: {
+            orderId: order.id,
+          },
+        });
+      }
+
+      // Create new orderProducts
+      await prisma.orderProduct.createMany({
+        data: items.map((item: CartProductType) => ({
+          orderId: order.id,
+          productId: item.id,
+          quantity: item.Quantity,
+          price: item.priceInCents, // Use 'price' instead of 'priceInCents'
+        })),
+      });
+
+      // Return the order object to be used outside the transaction
+      return order;
+    });
+
+    // Now, create or update the Payment Intent outside the transaction
     let paymentIntent: Stripe.PaymentIntent;
 
     if (payment_intent_id) {
       // **Update Existing Payment Intent**
-      await stripe.paymentIntents.update(payment_intent_id, {
-        amount: total,
+      paymentIntent = await stripe.paymentIntents.update(payment_intent_id, {
+        amount: totalAmountInCents,
+        metadata: {
+          orderId: order.id,
+          userId: currentUser.id,
+        },
       });
-
-      // Retrieve the payment intent to get the client_secret
-      paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
     } else {
       // **Create New Payment Intent**
       paymentIntent = await stripe.paymentIntents.create({
-        amount: total,
+        amount: totalAmountInCents,
         currency: "usd",
         automatic_payment_methods: { enabled: true },
         metadata: {
+          orderId: order.id,
           userId: currentUser.id,
-          productIds: items.map((item) => item.id).join(","),
-          discountCodeId: discountCodeId || "",
         },
       });
     }
 
-    // Start a transaction
-// Inside your transaction
-await db.$transaction(async (prisma) => {
-    // Upsert the order
-    await prisma.order.upsert({
-      where: { paymentIntentId: paymentIntent.id },
-      update: {
-        userId: currentUser.id,
-        pricePaidInCents: total,
-        currency: "usd",
-        status: "pending",
-        deliveryStatus: "pending",
-        discountCodeId: discountCodeId || null, // Use scalar field
-      },
-      create: {
-        userId: currentUser.id,
-        paymentIntentId: paymentIntent.id,
-        pricePaidInCents: total,
-        currency: "usd",
-        status: "pending",
-        deliveryStatus: "pending",
-        discountCodeId: discountCodeId || undefined, // Use scalar field
-      },
+    // Update the order with the paymentIntentId
+    await db.order.update({
+      where: { id: order.id },
+      data: { paymentIntentId: paymentIntent.id },
     });
-  
-    // Delete existing orderProducts for this order
-    await prisma.orderProduct.deleteMany({
-      where: {
-        order: {
-          paymentIntentId: paymentIntent.id,
-        },
-      },
-    });
-  
-    // Create new orderProducts
-    const order = await prisma.order.findUnique({
-      where: { paymentIntentId: paymentIntent.id },
-    });
-  
-    await prisma.orderProduct.createMany({
-      data: items.map((item: CartProductType) => ({
-        orderId: order!.id,
-        productId: item.id,
-        quantity: item.Quantity,
-        price: item.priceInCents,
-      })),
-    });
-  });
-  
 
     // Respond with the payment intent details
     return NextResponse.json({ paymentIntent });
   } catch (error) {
     console.error("Error creating or updating payment intent:", error);
-
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

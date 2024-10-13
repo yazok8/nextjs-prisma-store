@@ -24,7 +24,7 @@ export default function CartSuccessPage() {
     <div className="flex flex-col items-center justify-center min-h-screen">
       <h1 className="text-3xl font-bold mb-4">Payment Successful</h1>
       <p className="mb-6">Your payment was successful, and your cart has been cleared.</p>
-      <Button onClick={() => router.push("/order")}>View Your Orders</Button>
+      <Button onClick={() => router.push("/orders")}>View Your Orders</Button>
     </div>
   );
 }

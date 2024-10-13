@@ -11,12 +11,16 @@ import {
   useRef,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { CartProductType } from "../(customerFacing)/products/[id]/purchase/_components/ProductDetails";
 import { useToast } from "@/components/ui/use-toast";
 import { CheckIcon, CircleXIcon } from "lucide-react";
 
 // Define the type for the toast function
-type ToastFunction = (options: { title: ReactNode; variant?: "destructive" | "default" }) => void;
+type ToastFunction = (options: {
+  title: ReactNode;
+  variant?: "destructive" | "default";
+}) => void;
 
 // Define a custom Router type with the methods you need
 type Router = {
@@ -35,20 +39,17 @@ type CartContextType = {
   cartSubTotalAmount: number;
   paymentIntent: string | null;
   handleSetPaymentIntent: (val: string | null) => void;
-  clientSecret: string;
+  clientSecret: string | null;
   initializePaymentIntent: (router: Router, toast: ToastFunction) => void;
 };
 
 // Create a context with the defined type, initialized to null
 export const CartContext = createContext<CartContextType | null>(null);
 
-interface Props {
-  [propName: string]: any;
-}
-
 // The CartContextProvider component
-export const CartContextProvider = (props: Props) => {
+export const CartContextProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
+  const router = useRouter();
 
   // State variables
   const [cartTotalQty, setCartTotalQty] = useState(0);
@@ -57,7 +58,7 @@ export const CartContextProvider = (props: Props) => {
     null
   );
   const [paymentIntent, setPaymentIntent] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState("");
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Use a ref to keep track of initialization
   const initialized = useRef(false);
@@ -72,9 +73,14 @@ export const CartContextProvider = (props: Props) => {
     const storedPaymentIntent: string | null = eShopPaymentIntent
       ? JSON.parse(eShopPaymentIntent)
       : null;
+    const eShopClientSecret = localStorage.getItem("eShopClientSecret");
+    const storedClientSecret: string | null = eShopClientSecret
+      ? JSON.parse(eShopClientSecret)
+      : null;
 
     setCartProducts(cItems);
     setPaymentIntent(storedPaymentIntent);
+    setClientSecret(storedClientSecret);
   }, []);
 
   // Calculate totals whenever cartProducts change
@@ -106,16 +112,27 @@ export const CartContextProvider = (props: Props) => {
   }, [cartProducts]);
 
   // Function to add a product to the cart
-  const handleAddProductToCart = useCallback(
+const handleAddProductToCart = useCallback(
     (product: CartProductType) => {
+      console.log("handleAddProductToCart called with:", product);
       setCartProducts((prev) => {
         let updatedCart;
 
         if (prev) {
-          updatedCart = [...prev, product];
+          const existingIndex = prev.findIndex((item) => item.id === product.id);
+          if (existingIndex > -1) {
+            // Product already in cart, increase quantity
+            updatedCart = [...prev];
+            updatedCart[existingIndex].Quantity += product.Quantity;
+          } else {
+            // Product not in cart, add to cart
+            updatedCart = [...prev, product];
+          }
         } else {
           updatedCart = [product];
         }
+
+        // Toast notification
         toast({
           title: (
             <div className="flex items-center">
@@ -126,6 +143,8 @@ export const CartContextProvider = (props: Props) => {
             </div>
           ),
         });
+
+        // Persist to localStorage
         localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
         return updatedCart;
       });
@@ -237,12 +256,20 @@ export const CartContextProvider = (props: Props) => {
     setCartTotalQty(0);
     setCartSubTotalAmount(0);
     localStorage.removeItem("eStoreCartItems");
+    localStorage.removeItem("eShopPaymentIntent");
+    localStorage.removeItem("eShopClientSecret");
+    setPaymentIntent(null);
+    setClientSecret(null);
   }, []);
 
   // Function to set the paymentIntent and store it in localStorage
   const handleSetPaymentIntent = useCallback((val: string | null) => {
     setPaymentIntent(val);
-    localStorage.setItem("eShopPaymentIntent", JSON.stringify(val));
+    if (val) {
+      localStorage.setItem("eShopPaymentIntent", JSON.stringify(val));
+    } else {
+      localStorage.removeItem("eShopPaymentIntent");
+    }
   }, []);
 
   // Function to initialize the payment intent
@@ -250,9 +277,9 @@ export const CartContextProvider = (props: Props) => {
     async (router: Router, toast: ToastFunction) => {
       if (initialized.current || !cartProducts || cartProducts.length === 0)
         return;
-  
+
       initialized.current = true;
-  
+
       try {
         const res = await fetch("/api/create-payment-intent", {
           method: "POST",
@@ -263,17 +290,24 @@ export const CartContextProvider = (props: Props) => {
             payment_intent_id: paymentIntent,
           }),
         });
-  
+
         if (res.status === 401) {
           router.push("/login");
           return;
         }
-  
+
         const data = await res.json();
-  
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
         handleSetPaymentIntent(data.paymentIntent.id);
         setClientSecret(data.paymentIntent.client_secret);
-        localStorage.setItem("eShopClientSecret", JSON.stringify(data.paymentIntent.client_secret));
+        localStorage.setItem(
+          "eShopClientSecret",
+          JSON.stringify(data.paymentIntent.client_secret)
+        );
       } catch (error) {
         console.error("Error initializing payment intent:", error);
         toast({
@@ -308,8 +342,8 @@ export const CartContextProvider = (props: Props) => {
     initializePaymentIntent,
   };
 
-  // Render the context provider with the value, passing along any additional props
-  return <CartContext.Provider value={value} {...props} />;
+  // Render the context provider with the value
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 // Custom hook for consuming the CartContext

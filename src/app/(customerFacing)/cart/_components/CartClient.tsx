@@ -7,9 +7,16 @@ import Link from 'next/link'
 import React from 'react'
 import CartItem from './CartItem'
 import { formatCurrency } from '@/lib/formatters';
+import { useRouter } from 'next/navigation'
 
-function CartClient() {
+interface CartClientProps {
+    currentUser: any | null;
+}
+
+function CartClient({currentUser}:CartClientProps) {
     const {cartProducts, handleClearCart,cartSubTotalAmount} = useCart()
+
+    const router = useRouter();
     
     if(!cartProducts || cartProducts.length === 0){
         return (
@@ -48,7 +55,7 @@ function CartClient() {
                     <span>{formatCurrency(cartSubTotalAmount/100)}</span>
                 </div>
                 <p>Taxes & shopping calculate at checkout</p>
-                <Button onClick={()=>{}} className='w-full'><Link href={"/checkout"}>Checkout</Link></Button>
+                <Button onClick={()=>{ currentUser? router.push("/checkout"):router.push("/user/sign-in")}} className={ currentUser ? `w-full outline-none`: `w-full outline`}><Link href={"/"} ></Link>{currentUser? "Checkout":"Login to checkout"}</Button>
                 <Link href="/" className="text-slate-500 flex items-center gap-1 mt-2">
                     <ArrowLeft />
                     <span>Continue Shopping</span>

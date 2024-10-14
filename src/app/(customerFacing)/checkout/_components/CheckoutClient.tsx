@@ -2,12 +2,12 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "@/app/webhooks/useCart";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
+import { Elements, LinkAuthenticationElement } from "@stripe/react-stripe-js";
 import CartCheckoutForm from "./CartCheckoutForm";
 
 const stripePromise = loadStripe(
@@ -17,18 +17,10 @@ const stripePromise = loadStripe(
 export default function CheckoutClient() {
   const router = useRouter();
   const { toast } = useToast();
-  const {
-    initializePaymentIntent,
-    cartProducts,
-    cartSubTotalAmount,
-    clientSecret,
-  } = useCart();
+  const { initializePaymentIntent, cartProducts, cartSubTotalAmount, clientSecret } = useCart();
+
 
   useEffect(() => {
-    if (!cartProducts || cartProducts.length === 0) {
-      router.push("/cart"); // Redirect to cart if no products
-      return;
-    }
     initializePaymentIntent(router, toast);
   }, [initializePaymentIntent, cartProducts, router, toast]);
 
@@ -42,9 +34,18 @@ export default function CheckoutClient() {
 
   return (
     <div className="w-full">
-      <Elements options={options} stripe={stripePromise}>
-        <CartCheckoutForm totalAmount={cartSubTotalAmount} />
-      </Elements>
+      {clientSecret ? (
+        <Elements options={options} stripe={stripePromise}>
+          <CartCheckoutForm totalAmount={cartSubTotalAmount} />
+          
+        </Elements>
+        
+      ) : (
+        
+        <div className="text-center">Loading payment details...</div>
+      )}
+         
+
     </div>
   );
 }

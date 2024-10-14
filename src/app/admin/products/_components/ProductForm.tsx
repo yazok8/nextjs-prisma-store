@@ -2,7 +2,7 @@
 
 
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { formatCurrency } from "@/lib/formatters"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { useFormState, useFormStatus } from "react-dom"
 import { Product } from "@prisma/client"
 import Image from "next/image"
 import { Label } from "@/components/ui/label"
+import { Category } from "@/types/Category"
 
 
 export function ProductForm({ product }: { product?: Product | null }) {
@@ -21,6 +22,29 @@ export function ProductForm({ product }: { product?: Product | null }) {
   const [priceInCents, setPriceInCents] = useState<number | undefined>(
     product?.priceInCents
   )
+
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    product?.categoryId || ""
+  )
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    // Fetch categories from the API
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data: Category[] = await response.json();
+        setCategories(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <form action={action} className="space-y-8">
@@ -64,14 +88,24 @@ export function ProductForm({ product }: { product?: Product | null }) {
           <div className="text-destructive">{error.description}</div>
         )}
       </div>
-      {/* <div className="space-y-2">
-        <Label htmlFor="file">File</Label>
-        <Input type="file" id="file" name="file" required={product == null} />
-        {product != null && (
-          <div className="text-muted-foreground">{product.filePath}</div>
-        )}
-        {error.file && <div className="text-destructive">{error.file}</div>}
-      </div> */}
+      <div className="space-y-2 text-sm">
+        <Label htmlFor="categoryId">Category</Label>
+        <select
+          id="categoryId"
+          name="categoryId" // Ensure this matches the server-side expectation
+          value={selectedCategory}
+          onChange={e => setSelectedCategory(e.target.value)}
+          required
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+          <option value="" className="text-sm">Select a category</option>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        </div>
       <div className="space-y-2">
         <Label htmlFor="image">Image</Label>
         <Input type="file" id="image" name="image" required={product == null} />

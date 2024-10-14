@@ -6,6 +6,8 @@ import fs from "fs/promises";
 import {File} from "buffer";
 import { notFound, redirect } from "next/navigation"
 import { revalidatePath } from "next/cache";
+import { Category } from '../../../../node_modules/.prisma/client/index.d';
+import { NextRequest, NextResponse } from "next/server";
 
 
 
@@ -38,6 +40,7 @@ export async function addProduct(prevState: unknown, formData: FormData) {
     `public${imagePath}`,
     Buffer.from(await data.image.arrayBuffer())
   )
+  
 
   await db.product.create({
     data: {
@@ -122,4 +125,39 @@ export async function deleteProduct(id: string) {
 
   revalidatePath("/")
   revalidatePath("/products")
+}
+
+export async function GetProduct(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  if (!id) {
+    return NextResponse.json({ error: 'Product ID is required.' }, { status: 400 });
+  }
+
+  try {
+    const product = await db.product.findUnique({
+      where: { id },
+      include: { category: true }, // Include category details
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
+    }
+
+    // Optionally, transform the product data to simplify the frontend consumption
+    const transformedProduct = {
+      id: product.id,
+      imagePath: product.imagePath,
+      name: product.name,
+      priceInCents: product.priceInCents,
+      description: product.description,
+      category: product.category ? product.category.name : 'Uncategorized', // Extract category name
+      // Add other fields as necessary
+    };
+
+    return NextResponse.json(transformedProduct, { status: 200 });
+  } catch (error: any) {
+    console.error('Error fetching product:', error);
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+  }
 }

@@ -18,6 +18,7 @@ type ProductProps = {
     name: string;
     priceInCents: number;
     description: string;
+    category:string
   };
 };
 
@@ -115,7 +116,7 @@ export default function ProductDetails({ product }: ProductProps) {
           </div>
           <HorizontalLine />
           <div className="flex flex-col">
-            <span className="text-slate-500 font-semibold">Category</span>
+            <span className="text-slate-500 font-semibold">Category: {product.category}</span>
             <span className="text-slate-500 font-semibold">Brand</span>
           </div>
           <HorizontalLine />

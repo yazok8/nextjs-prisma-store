@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useStripe, useElements, PaymentElement, AddressElement } from "@stripe/react-stripe-js";
+import { useStripe, useElements, PaymentElement, AddressElement, LinkAuthenticationElement } from "@stripe/react-stripe-js";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/formatters";
 import React, { FormEvent, useState } from "react";
@@ -18,7 +18,7 @@ import { CartProductType } from "../../products/[id]/purchase/_components/Produc
 
 interface CartCheckoutFormProps {
   totalAmount: number;
-  products: CartProductType[]
+  
 }
 
 export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps) {
@@ -28,6 +28,8 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
   const [isLoading, setIsLoading] = useState(false);
 
   const formattedPrice = formatCurrency(totalAmount / 100);
+
+  const [email, setEmail] = useState<string>();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -73,6 +75,9 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
             }}
           />
           <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
+          <LinkAuthenticationElement
+            onChange={(e) => setEmail(e.value.email)}
+          />
         </CardContent>
         <CardFooter>
           <Button

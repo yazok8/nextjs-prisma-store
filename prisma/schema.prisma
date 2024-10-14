@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  products  Product[]
+}
+
 model Product {
   id                     String                 @id @default(uuid())
   name                   String
@@ -17,6 +23,9 @@ model Product {
   filePath               String?
   imagePath              String
   description            String
+  categoryId             String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand                  String? 
   isAvailableForPurchase Boolean                @default(true)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt

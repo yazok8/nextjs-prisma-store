@@ -11,7 +11,7 @@ import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SetQuantity from "../../../_components/SetQuantity";
 
-type ProductProps = {
+export type ProductProps = {
   product: {
     id: string;
     imagePath: string;

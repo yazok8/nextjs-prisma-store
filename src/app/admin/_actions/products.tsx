@@ -1,163 +1,166 @@
-"use server"
+"use server";
 
 import db from "@/db/db";
 import { z } from "zod";
 import fs from "fs/promises";
-import {File} from "buffer";
-import { notFound, redirect } from "next/navigation"
+import { File } from "buffer";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { Category } from '../../../../node_modules/.prisma/client/index.d';
-import { NextRequest, NextResponse } from "next/server";
 
+// Define schemas using Zod
+const fileSchema = z.instanceof(File, { message: "File is required." });
 
-
-const fileSchema = z.instanceof(File, { message: "Required" })
 const imageSchema = fileSchema.refine(
-  file => file.size === 0 || file.type.startsWith("image/")
-)
+  file => file.size === 0 || file.type.startsWith("image/"),
+  { message: "File must be an image." }
+);
 
+// Schema for adding a product
 const addSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  priceInCents: z.coerce.number().int().min(1),
-  // file: fileSchema.refine(file => file.size > 0, "Required"),
-  image: imageSchema.refine(file => file.size > 0, "Required"),
-})
+  name: z.string().min(1, { message: "Name is required." }),
+  description: z.string().min(1, { message: "Description is required." }),
+  priceInCents: z.coerce.number().int().min(1, { message: "Price must be at least 1 cent." }),
+  image: imageSchema.refine(file => file.size > 0, { message: "Image is required." }),
+  categoryId: z.string().min(1, { message: "Category is required." }), // Added categoryId
+});
 
+// Schema for editing a product
+const editSchema = addSchema.extend({
+  image: imageSchema.optional(),
+  categoryId: z.string().optional(), // Made categoryId optional for edits
+});
+
+// Function to add a new product
 export async function addProduct(prevState: unknown, formData: FormData) {
-  const result = addSchema.safeParse(Object.fromEntries(formData.entries()))
-  if (result.success === false) {
-    return result.error.formErrors.fieldErrors
+  const result = addSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!result.success) {
+    return result.error.formErrors.fieldErrors;
   }
 
-  const data = result.data
+  const data = result.data;
 
-  await fs.mkdir("products", { recursive: true })
+  // Verify that the category exists
+  const categoryExists = await db.category.findUnique({
+    where: { id: data.categoryId },
+  });
 
-  await fs.mkdir("public/products", { recursive: true })
-  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
+  if (!categoryExists) {
+    return { categoryId: ["Selected category does not exist."] };
+  }
+
+  // Ensure directories exist
+  await fs.mkdir("products", { recursive: true });
+  await fs.mkdir("public/products", { recursive: true });
+
+  // Generate a unique image path and save the image
+  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
   await fs.writeFile(
     `public${imagePath}`,
     Buffer.from(await data.image.arrayBuffer())
-  )
-  
+  );
 
+  // Create the product in the database
   await db.product.create({
     data: {
       isAvailableForPurchase: false,
       name: data.name,
       description: data.description,
       priceInCents: data.priceInCents,
-      // filePath,
       imagePath,
+      categoryId: data.categoryId, // Include categoryId
     },
-  })
+  });
 
-  revalidatePath("/")
-  revalidatePath("/products")
+  // Revalidate relevant paths to update caches
+  revalidatePath("/");
+  revalidatePath("/products");
 
-  redirect("/admin/products")
+  // Redirect to the admin products page
+  redirect("/admin/products");
 }
 
-const editSchema = addSchema.extend({
-  // file: fileSchema.optional(),
-  image: imageSchema.optional(),
-})
-
+// Function to update an existing product
 export async function updateProduct(
   id: string,
   prevState: unknown,
   formData: FormData
 ) {
-  const result = editSchema.safeParse(Object.fromEntries(formData.entries()))
-  if (result.success === false) {
-    return result.error.formErrors.fieldErrors
+  const result = editSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!result.success) {
+    return result.error.formErrors.fieldErrors;
   }
 
-  const data = result.data
-  const product = await db.product.findUnique({ where: { id } })
+  const data = result.data;
+  const product = await db.product.findUnique({ where: { id } });
 
-  if (product == null) return notFound()
+  if (!product) return notFound();
 
-  let imagePath = product.imagePath
-  if (data.image != null && data.image.size > 0) {
-    await fs.unlink(`public${product.imagePath}`)
-    imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`
+  let imagePath = product.imagePath;
+  if (data.image && data.image.size > 0) {
+    // Delete the old image
+    await fs.unlink(`public${product.imagePath}`);
+    // Generate a new image path and save the new image
+    imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
     await fs.writeFile(
       `public${imagePath}`,
       Buffer.from(await data.image.arrayBuffer())
-    )
+    );
   }
 
+  // If categoryId is provided, verify it exists
+  if (data.categoryId) {
+    const categoryExists = await db.category.findUnique({
+      where: { id: data.categoryId },
+    });
+
+    if (!categoryExists) {
+      return { categoryId: ["Selected category does not exist."] };
+    }
+  }
+
+  // Update the product in the database
   await db.product.update({
     where: { id },
     data: {
       name: data.name,
       description: data.description,
       priceInCents: data.priceInCents,
-      // filePath,
       imagePath,
+      categoryId: data.categoryId ?? product.categoryId, // Update categoryId if provided
     },
-  })
+  });
 
-  revalidatePath("/")
-  revalidatePath("/products")
+  // Revalidate relevant paths to update caches
+  revalidatePath("/");
+  revalidatePath("/products");
 
-  redirect("/admin/products")
+  // Redirect to the admin products page
+  redirect("/admin/products");
 }
 
+// Function to toggle product availability
 export async function toggleProductAvailability(
   id: string,
   isAvailableForPurchase: boolean
 ) {
-  await db.product.update({ where: { id }, data: { isAvailableForPurchase } })
+  await db.product.update({
+    where: { id },
+    data: { isAvailableForPurchase },
+  });
 
-  revalidatePath("/")
-  revalidatePath("/products")
+  revalidatePath("/");
+  revalidatePath("/products");
 }
 
+// Function to delete a product
 export async function deleteProduct(id: string) {
-  const product = await db.product.delete({ where: { id } })
+  const product = await db.product.delete({ where: { id } });
 
-  if (product == null) return notFound()
+  if (!product) return notFound();
 
-  await fs.unlink(`public${product.imagePath}`)
+  // Delete the associated image
+  await fs.unlink(`public${product.imagePath}`);
 
-  revalidatePath("/")
-  revalidatePath("/products")
-}
-
-export async function GetProduct(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
-
-  if (!id) {
-    return NextResponse.json({ error: 'Product ID is required.' }, { status: 400 });
-  }
-
-  try {
-    const product = await db.product.findUnique({
-      where: { id },
-      include: { category: true }, // Include category details
-    });
-
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
-    }
-
-    // Optionally, transform the product data to simplify the frontend consumption
-    const transformedProduct = {
-      id: product.id,
-      imagePath: product.imagePath,
-      name: product.name,
-      priceInCents: product.priceInCents,
-      description: product.description,
-      category: product.category ? product.category.name : 'Uncategorized', // Extract category name
-      // Add other fields as necessary
-    };
-
-    return NextResponse.json(transformedProduct, { status: 200 });
-  } catch (error: any) {
-    console.error('Error fetching product:', error);
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
-  }
+  revalidatePath("/");
+  revalidatePath("/products");
 }

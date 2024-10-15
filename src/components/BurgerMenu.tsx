@@ -8,6 +8,7 @@ import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { Nav, NavLink } from "./Nav";
+import SearchBar from "./SearhBar";
 
 type BurgerMenuProps = {
   session: {
@@ -60,13 +61,14 @@ export function BurgerMenu({ session }: BurgerMenuProps) {
 
       {/* Render the dropdown menu if isOpen is true */}
       {isOpen && (
-        <div className="absolute right-0 top-12 mt-2 w-48 bg-white rounded-lg shadow-xl z-30 block">
+        <div className="absolute right-0 top-12 mt-2 bg-white rounded-lg shadow-xl z-30 block w-[19rem]">
           {/* If the user is logged in, display user info and sign-out option */}
           {session?.user ? (
             <>
             
               <div className="px-4 py-2 space-y-2">
                 <p className="text-black">Hello, {session?.user?.name}</p>
+                <div className="block max-w-[10rem]"><SearchBar /></div>
 
                 {/* Button to navigate to the user's account page */}
                 <NavLink
@@ -81,8 +83,8 @@ export function BurgerMenu({ session }: BurgerMenuProps) {
                   </NavLink>
 
                 {/* Sign-out button */}
-                <div className="flex flex-col space-y-2">
-                <NavLink className=" h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white focus:bg-white focus:text-black" href="/products">Products</NavLink>
+                <div className="hiddden md:flex flex-col space-y-2">
+                
                 <NavLink className=" h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white focus:bg-white focus:text-black" href="/orders">My Orders</NavLink>
                 </div>
                 

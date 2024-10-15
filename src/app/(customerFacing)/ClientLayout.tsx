@@ -6,7 +6,11 @@ import { Nav, NavLink } from "@/components/Nav";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
 import { ShoppingBag, Store, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import CartCounter from "./Nav/_components/CartCounter";
+import CartCounter from "../../components/CartCounter";
+import { useRouter } from "next/navigation";
+import queryString from 'query-string';
+import SearchBar from "@/components/SearhBar";
+
 
 interface ClientLayoutProps {
   session: Session | null;
@@ -19,6 +23,8 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
   // Create a ref for the profile menu
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLAnchorElement>(null);
+
+  const router = useRouter();
 
   // Handle clicks outside of the profile menu
   useEffect(() => {
@@ -53,13 +59,8 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
         <NavLink href="/">
           <Store />
         </NavLink>
-        <div className="flex justify-center mx-auto">
-          <NavLink className="hidden md:flex" href="/products">
-            Products
-          </NavLink>
-          <NavLink className="hidden md:flex" href="/orders">
-            My Orders
-          </NavLink>
+        <div className="flex justify-center mx-auto gap-5 items-center my-auto">
+        <div className="hidden md:block"><SearchBar /></div>
         </div>
         <div className="inline-flex justify-center text-center align-center space-x-2">
           <div className="hidden md:flex items-center space-x-2">

@@ -52,7 +52,7 @@ export default async function ProfilePage() {
         />
         <div className="mt-5">
           Edit your profile{" "}
-          <Link href={`/user/${user.id}/edit`} className=" text-blue-600">
+          <Link href={`/user/${user.id}/edit`} className=" text-blue-600 hover:underline focus:underline">
             here
           </Link>
           <UserInfoTable user={user} />
@@ -80,23 +80,31 @@ async function UserInfoTable({ user }: { user: UserInfoProps }) {
       <>
         <TableBody className="w-[300px]">
           <TableRow className="w-[300px] border-none">
-            <TableHead className="w-[100px]">Name:</TableHead>
+            <TableHead className="w-[100px] pl-0">Name:</TableHead>
             <TableCell className="font-medium whitespace-break-spaces">
               {user.name}
             </TableCell>
           </TableRow>
           <TableRow className="border-none">
-            <TableHead className="w-[100px]">Email:</TableHead>
+            <TableHead className="w-[100px] pl-0">Email:</TableHead>
             <TableCell className="whitespace-break-spaces">
               {user.email}
             </TableCell>
           </TableRow>
           <TableRow className="border-none">
-            <TableHead className="w-[100px] text-nowrap">Delivery Address:</TableHead>
+            <TableHead className="w-[100px] text-nowrap pl-0">My Orders:</TableHead>
+            <TableCell className="whitespace-break-spaces">
+              <Link href={"/orders"} className="text-blue-600 hover:underline focus:underline">View Orders</Link>
+            </TableCell>
+          </TableRow>
+          <TableRow className="border-none">
+            <TableHead className="w-[100px] text-nowrap pl-0">Delivery Address:</TableHead>
             <TableCell className="whitespace-break-spaces">
               {user.address}
             </TableCell>
           </TableRow>
+
+
         </TableBody>
       </>
     </Table>

@@ -14,6 +14,16 @@ interface HomeProps{
   searchParams: IProductParams;
 }
 
+  //Fisher-Yates shuffle algorithm to search for products
+  function shuffleArray(array: Product[]): Product[] {
+    const shuffled = [...array];
+    for(let i = shuffled.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
 const getMostPopularProducts = cache(() => {
   return db.product.findMany({
     where: { isAvailableForPurchase: true },
@@ -32,10 +42,8 @@ const getMostNewestProducts = cache(() => {
 
 export default async function Homepage({ searchParams }: HomeProps) {
   try {
-    console.log('Received searchParams:', searchParams);
 
     const products = await getProducts(searchParams);
-    console.log('Fetched products:', products);
 
     // Determine if a search is being performed
     const isSearching = searchParams.search && searchParams.search.trim() !== "";
@@ -127,11 +135,4 @@ async function ProductSuspense({
   }
 }
 
-function shuffleArray(array: Product[]): Product[] {
-  const shuffled = [...array];
-  for(let i = shuffled.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+

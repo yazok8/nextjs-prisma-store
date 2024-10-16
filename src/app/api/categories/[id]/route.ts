@@ -35,7 +35,6 @@ export async function DELETE(
     if (!deletedCategory) {
       return NextResponse.json({ error: 'Category not found.' }, { status: 404 });
     }
-
     return NextResponse.json({ message: 'Category deleted successfully.' }, { status: 200 });
   } catch (error: any) {
     console.error('Error deleting category:', error);

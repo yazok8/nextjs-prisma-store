@@ -12,16 +12,9 @@ import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { MoreVertical } from "lucide-react";
-import Link from "next/link";
-import {
-  ActiveToggleDropDownItem,
-  DeleteDropDownItem,
-} from "../_components/ProductAction";
 import { DeleteCategoryDropDownItem } from "../../_components/DeleteCategoryDropDownItem";
 
 interface CategoryFormInputs {

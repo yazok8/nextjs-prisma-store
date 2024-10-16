@@ -5,10 +5,3 @@ export interface Category {
     name: string
   }
   
-  export interface ProductFormErrors {
-    name?: string[];
-    priceInCents?: string[];
-    description?: string[];
-    image?: string[];
-    categoryId?: string[]; // Ensure this property exists
-  }

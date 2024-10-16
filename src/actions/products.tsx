@@ -33,6 +33,6 @@ export default async function getProducts(params: IProductParams): Promise<Produ
     return fetchedProducts;
   } catch (error) {
     console.error('Error fetching products from database:', error);
-    throw error; // Rethrow to be handled in the calling function
+    throw error;
   }
 }

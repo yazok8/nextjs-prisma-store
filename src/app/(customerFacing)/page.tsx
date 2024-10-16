@@ -45,6 +45,13 @@ export default async function Homepage({ searchParams }: HomeProps) {
 
     const products = await getProducts(searchParams);
 
+    if(products.length === 0){
+      return<ProductGridSection
+      title={`No Search Results found for "${searchParams.search}"`}
+      productsFetcher={getMostNewestProducts}      
+    />
+    }
+
     // Determine if a search is being performed
     const isSearching = searchParams.search && searchParams.search.trim() !== "";
     const shuffledProducts = isSearching ? shuffleArray(products) : [];

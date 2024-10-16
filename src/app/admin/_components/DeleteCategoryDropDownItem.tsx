@@ -21,8 +21,11 @@ export function DeleteCategoryDropDownItem({ id, disabled = false }: DeleteCateg
 
     startTransition(async () => {
       try {
-        const response = await fetch(`/api/products/categories/${id}`, { // Updated URL
+        const response = await fetch(`/api/categories/${id}`, { // Corrected URL
           method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
 
         const result = await response.json();
@@ -32,7 +35,6 @@ export function DeleteCategoryDropDownItem({ id, disabled = false }: DeleteCateg
           alert(result.error);
           return;
         }
-
         alert(result.message);
         router.refresh();
       } catch (error) {

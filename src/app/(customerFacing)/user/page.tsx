@@ -1,3 +1,5 @@
+// src/app/(customerFacing)/user/page.tsx
+
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import React from "react";
@@ -12,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { Order } from "@prisma/client";
+import ClientLayout from "./ClientLayout"; // Import after removing 'session' prop
 
 export default async function ProfilePage() {
   try {
@@ -32,6 +35,9 @@ export default async function ProfilePage() {
       where: {
         email: session.user.email,
       },
+      include: {
+        orders: true, // Include orders here
+      },
     });
 
     console.log("User:", user);
@@ -44,7 +50,7 @@ export default async function ProfilePage() {
         <h2 className="text-2xl mb-5">Welcome back {user.name}</h2>
         <Image
           style={{ borderRadius: "100px" }}
-          className="text-muted-foregorund"
+          className="text-muted-foreground"
           src={user.profileImage ?? "/default-avatar.png"}
           height={200}
           width={200}
@@ -52,7 +58,10 @@ export default async function ProfilePage() {
         />
         <div className="mt-5">
           Edit your profile{" "}
-          <Link href={`/user/${user.id}/edit`} className=" text-blue-600 hover:underline focus:underline">
+          <Link
+            href={`/user/${user.id}/edit`}
+            className="text-blue-600 hover:underline focus:underline"
+          >
             here
           </Link>
           <UserInfoTable user={user} />
@@ -71,42 +80,37 @@ type UserInfoProps = {
   email: string;
   address: string | null;
   profileImage: string | null;
-  orders: Order[];
+  orders: Order[]; // Now included
 };
 
 async function UserInfoTable({ user }: { user: UserInfoProps }) {
   return (
     <Table className="w-[500px]">
-      <>
-        <TableBody className="w-[300px]">
-          <TableRow className="w-[300px] border-none">
-            <TableHead className="w-[100px] pl-0">Name:</TableHead>
-            <TableCell className="font-medium whitespace-break-spaces">
-              {user.name}
-            </TableCell>
-          </TableRow>
-          <TableRow className="border-none">
-            <TableHead className="w-[100px] pl-0">Email:</TableHead>
-            <TableCell className="whitespace-break-spaces">
-              {user.email}
-            </TableCell>
-          </TableRow>
-          <TableRow className="border-none">
-            <TableHead className="w-[100px] text-nowrap pl-0">My Orders:</TableHead>
-            <TableCell className="whitespace-break-spaces">
-              <Link href={"/orders"} className="text-blue-600 hover:underline focus:underline">View Orders</Link>
-            </TableCell>
-          </TableRow>
-          <TableRow className="border-none">
-            <TableHead className="w-[100px] text-nowrap pl-0">Delivery Address:</TableHead>
-            <TableCell className="whitespace-break-spaces">
-              {user.address}
-            </TableCell>
-          </TableRow>
-
-
-        </TableBody>
-      </>
+      <TableBody className="w-[300px]">
+        <TableRow className="w-[300px] border-none">
+          <TableHead className="w-[100px] pl-0">Name:</TableHead>
+          <TableCell className="font-medium whitespace-break-spaces">
+            {user.name}
+          </TableCell>
+        </TableRow>
+        <TableRow className="border-none">
+          <TableHead className="w-[100px] pl-0">Email:</TableHead>
+          <TableCell className="whitespace-break-spaces">
+            {user.email}
+          </TableCell>
+        </TableRow>
+        <TableRow className="border-none">
+          <TableHead className="w-[100px] text-nowrap pl-0">My Orders:</TableHead>
+          <TableCell className="whitespace-break-spaces">
+            <Link
+              href={"/orders"}
+              className="text-blue-600 hover:underline focus:underline"
+            >
+              View Orders
+            </Link>
+          </TableCell>
+        </TableRow>
+      </TableBody>
     </Table>
   );
 }

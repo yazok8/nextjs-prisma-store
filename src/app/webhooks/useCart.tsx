@@ -15,19 +15,17 @@ import { useRouter } from "next/navigation";
 import { CartProductType } from "../(customerFacing)/products/[id]/purchase/_components/ProductDetails";
 import { useToast } from "@/components/ui/use-toast";
 import { CheckIcon, CircleXIcon } from "lucide-react";
+import { useSession } from "next-auth/react"; // Import useSession
 
-// Define the type for the toast function
 type ToastFunction = (options: {
   title: ReactNode;
   variant?: "destructive" | "default";
 }) => void;
 
-// Define a custom Router type with the methods you need
 type Router = {
   push: (url: string) => void;
 };
 
-// Define the CartContext value using TypeScript
 type CartContextType = {
   cartTotalQty: number;
   cartProducts: CartProductType[] | null;
@@ -43,11 +41,10 @@ type CartContextType = {
   initializePaymentIntent: (router: Router, toast: ToastFunction) => void;
 };
 
-// Create a context with the defined type, initialized to null
 export const CartContext = createContext<CartContextType | null>(null);
 
-// The CartContextProvider component
 export const CartContextProvider = ({ children }: { children: ReactNode }) => {
+  const { data: session, status } = useSession(); // Access session data and status
   const { toast } = useToast();
   const router = useRouter();
 
@@ -63,9 +60,55 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
   // Use a ref to keep track of initialization
   const initialized = useRef(false);
 
-  // Load cart products and payment intent from local storage on mount
+  // Use a ref to store the previous user ID
+  const previousUserId = useRef<string | null>(null);
+
+  // Determine the cart key based on the user
+  const cartKey = session?.user?.id
+    ? `eStoreCartItems_${session.user.id}`
+    : "eStoreCartItems_guest";
+
+      // Function to clear the cart
+  const handleClearCart = useCallback(() => {
+    setCartProducts(null);
+    setCartTotalQty(0);
+    setCartSubTotalAmount(0);
+    localStorage.removeItem(cartKey);
+    localStorage.removeItem("eShopPaymentIntent");
+    localStorage.removeItem("eShopClientSecret");
+    setPaymentIntent(null);
+    setClientSecret(null);
+  }, [cartKey]);
+
+
+  // Track previous user ID and clear their cart upon logout or user switch
   useEffect(() => {
-    const cartItems = localStorage.getItem("eStoreCartItems");
+    if (previousUserId.current && previousUserId.current !== session?.user?.id) {
+      // User has logged out or switched to another user
+      const previousCartKey = `eStoreCartItems_${previousUserId.current}`;
+      localStorage.removeItem(previousCartKey);
+      console.log(`Cleared cart for user ID: ${previousUserId.current}`);
+    }
+
+    if (session?.user?.id) {
+      // User has logged in or switched to another user
+      previousUserId.current = session.user.id;
+      console.log(`Current user ID set to: ${session.user.id}`);
+    } else {
+      // User has logged out
+      previousUserId.current = null;
+    }
+  }, [session]);
+
+  // Load cart products and payment intent from local storage on mount or session change
+  useEffect(() => {
+    if (!session) {
+      // Handle guest users
+      handleClearCart();
+      return;
+    }
+
+    const cartItems = localStorage.getItem(cartKey);
     const cItems: CartProductType[] | null = cartItems
       ? JSON.parse(cartItems)
       : null;
@@ -81,7 +124,16 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
     setCartProducts(cItems);
     setPaymentIntent(storedPaymentIntent);
     setClientSecret(storedClientSecret);
-  }, []);
+  }, [cartKey, session, handleClearCart]);
+
+  // Update cart in localStorage whenever cartProducts change
+  useEffect(() => {
+    if (session?.user?.id) {
+      localStorage.setItem(cartKey, JSON.stringify(cartProducts));
+    } else {
+      localStorage.setItem("eStoreCartItems_guest", JSON.stringify(cartProducts));
+    }
+  }, [cartProducts, cartKey, session]);
 
   // Calculate totals whenever cartProducts change
   useEffect(() => {
@@ -112,7 +164,7 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
   }, [cartProducts]);
 
   // Function to add a product to the cart
-const handleAddProductToCart = useCallback(
+  const handleAddProductToCart = useCallback(
     (product: CartProductType) => {
       console.log("handleAddProductToCart called with:", product);
       setCartProducts((prev) => {
@@ -145,11 +197,11 @@ const handleAddProductToCart = useCallback(
         });
 
         // Persist to localStorage
-        localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
+        localStorage.setItem(cartKey, JSON.stringify(updatedCart));
         return updatedCart;
       });
     },
-    [toast]
+    [toast, cartKey]
   );
 
   // Function to remove a product from the cart
@@ -169,13 +221,10 @@ const handleAddProductToCart = useCallback(
           ),
           variant: "destructive",
         });
-        localStorage.setItem(
-          "eStoreCartItems",
-          JSON.stringify(filteredProducts)
-        );
+        localStorage.setItem(cartKey, JSON.stringify(filteredProducts));
       }
     },
-    [cartProducts, toast]
+    [cartProducts, toast, cartKey]
   );
 
   // Function to increase the quantity of a product in the cart
@@ -203,15 +252,14 @@ const handleAddProductToCart = useCallback(
         );
 
         if (existingIndex > -1) {
-          updatedCart[existingIndex].Quantity =
-            updatedCart[existingIndex].Quantity + 1;
+          updatedCart[existingIndex].Quantity += 1;
         }
 
         setCartProducts(updatedCart);
-        localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
+        localStorage.setItem(cartKey, JSON.stringify(updatedCart));
       }
     },
-    [cartProducts, toast]
+    [cartProducts, toast, cartKey]
   );
 
   // Function to decrease the quantity of a product in the cart
@@ -239,28 +287,16 @@ const handleAddProductToCart = useCallback(
         );
 
         if (existingIndex > -1) {
-          updatedCart[existingIndex].Quantity =
-            updatedCart[existingIndex].Quantity - 1;
+          updatedCart[existingIndex].Quantity -= 1;
         }
 
         setCartProducts(updatedCart);
-        localStorage.setItem("eStoreCartItems", JSON.stringify(updatedCart));
+        localStorage.setItem(cartKey, JSON.stringify(updatedCart));
       }
     },
-    [cartProducts, toast]
+    [cartProducts, toast, cartKey]
   );
 
-  // Function to clear the cart
-  const handleClearCart = useCallback(() => {
-    setCartProducts(null);
-    setCartTotalQty(0);
-    setCartSubTotalAmount(0);
-    localStorage.removeItem("eStoreCartItems");
-    localStorage.removeItem("eShopPaymentIntent");
-    localStorage.removeItem("eShopClientSecret");
-    setPaymentIntent(null);
-    setClientSecret(null);
-  }, []);
 
   // Function to set the paymentIntent and store it in localStorage
   const handleSetPaymentIntent = useCallback((val: string | null) => {
@@ -323,7 +359,7 @@ const handleAddProductToCart = useCallback(
         });
       }
     },
-    [cartProducts, paymentIntent, handleSetPaymentIntent]
+    [cartProducts, paymentIntent, handleSetPaymentIntent, router, toast]
   );
 
   // The value that will be provided to consuming components

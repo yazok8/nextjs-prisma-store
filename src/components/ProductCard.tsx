@@ -53,17 +53,18 @@ export function ProductCard({
 
 
   return (
-    <Card className="flex flex-col overflow-hidden">
+    <Card className="flex flex-col overflow-hidden border-none">
       <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`} className="flex justify-center">
-          <Image className="flex justify-center items-center" src={imagePath} objectFit="contain" width={300} height={50} alt={name} />
+          <Image className="flex justify-center items-center" src={imagePath} objectFit="contain" fill  alt={name} objectPosition="center" />
         </Link>
       </div>
       <CardHeader>
-        <Link href={`/products/${id}`} className="flex flex-row justify-between">
-          <CardTitle>{name}</CardTitle>
+        <Link href={`/products/${id}`} className="flex flex-col justify-between">
+          <CardTitle className="line-clamp-4">{name}</CardTitle>
           <CardDescription className="font-bold text-black">{formatCurrency(priceInCents / 100)}</CardDescription>
         </Link>
+ 
       </CardHeader>
       <CardContent className="flex-grow">
         <Link href={`/products/${id}`}>

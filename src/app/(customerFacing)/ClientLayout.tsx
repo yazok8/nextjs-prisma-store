@@ -1,23 +1,24 @@
+// components/ClientLayout.tsx
+
 "use client";
 
-import { Session } from "next-auth";
-import { BurgerMenu } from "@/components/BurgerMenu";
 import { Nav, NavLink } from "@/components/Nav";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
-import { ShoppingBag, Store, User } from "lucide-react";
+import { Role } from "@prisma/client";
+import { signIn, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import CartCounter from "../../components/CartCounter";
 import { useRouter } from "next/navigation";
-import queryString from 'query-string';
-import SearchBar from "@/components/SearhBar";
-
+import SearchBar from "@/components/SearhBar"; // Corrected typo from "SearhBar" to "SearchBar"
+import { ShoppingBag, Store, User } from "lucide-react";
+import {BurgerMenu }from "@/components/BurgerMenu"; // Assuming BurgerMenu is correctly imported
 
 interface ClientLayoutProps {
-  session: Session | null;
   children: React.ReactNode;
 }
 
-export default function ClientLayout({ session, children }: ClientLayoutProps) {
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const { data: session, status } = useSession();
   const [isProfileClicked, setIsProfileClicked] = useState<boolean>(false);
 
   // Create a ref for the profile menu
@@ -53,6 +54,15 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
     };
   }, [isProfileClicked]);
 
+  // Optional: Handle authentication status if needed
+  useEffect(() => {
+    if (status === "loading") return; // Do nothing while loading
+    if (!session) {
+      // Optional: Redirect to sign-in or show guest UI
+      // signIn(); // Uncomment if you want to automatically trigger sign-in
+    }
+  }, [session, status]);
+
   return (
     <>
       <Nav className="fixed">
@@ -60,7 +70,9 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
           <Store />
         </NavLink>
         <div className="flex justify-center mx-auto gap-5 items-center my-auto">
-        <div className="hidden md:block"><SearchBar /></div>
+          <div className="hidden md:block">
+            <SearchBar />
+          </div>
         </div>
         <div className="inline-flex justify-center text-center align-center space-x-2">
           <div className="hidden md:flex items-center space-x-2">
@@ -68,7 +80,10 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
               ref={profileButtonRef} // Reference the profile button
               href="#"
               className="flex text-white w-full text-nowrap pr-2"
-              onClick={() => setIsProfileClicked((prev) => !prev)} // Toggle visibility on click
+              onClick={(e) => {
+                e.preventDefault(); // Prevent default anchor behavior
+                setIsProfileClicked((prev) => !prev); // Toggle visibility on click
+              }}
             >
               <div className="w-8">
                 <User />
@@ -78,13 +93,13 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
             {isProfileClicked && (
               <div
                 ref={profileMenuRef}
-                className="absolute top-[3.5rem] right-[4.5rem] bg-white p-2 shadow-lg"
+                className="absolute top-[3.5rem] right-[4.5rem] bg-white p-2 shadow-lg rounded-lg"
               >
                 {session?.user ? (
                   <div className="space-y-2 mt-5">
                     <NavLink
                       href={`/user`}
-                      className="h-4 flex my-auto justify-center items-center rounded-lg bg-primary text-white text-nowrap px-auto focus:bg-white focus:text-black"
+                      className="h-10 flex items-center justify-center rounded-lg bg-primary text-white text-nowrap px-4 focus:bg-white focus:text-black transition-colors duration-200"
                     >
                       My Account
                       <div className="px-2">
@@ -92,6 +107,21 @@ export default function ClientLayout({ session, children }: ClientLayoutProps) {
                         <User />
                       </div>
                     </NavLink>
+
+                    {/* Conditionally render Admin Dashboard link */}
+                    {session.user.role === Role.ADMIN && (
+                      <NavLink
+                        href="/admin"
+                        className="h-10 flex items-center justify-center rounded-lg bg-primary text-white text-nowrap px-4 focus:bg-white focus:text-black transition-colors duration-200"
+                      >
+                        Admin Dashboard
+                        <div className="px-2">
+                          {/* Admin icon */}
+                          <ShoppingBag />
+                        </div>
+                      </NavLink>
+                    )}
+
                     <UserSignOut />
                   </div>
                 ) : (

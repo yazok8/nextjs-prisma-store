@@ -16,6 +16,7 @@ model Category {
   products  Product[]
 }
 
+
 model Product {
   id                     String                 @id @default(uuid())
   name                   String
@@ -34,19 +35,57 @@ model Product {
   discountCodes          DiscountCode[]         // Relation to DiscountCode
 }
 
+model Account {
+  id                 String    @id @default(uuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
 model User {
   id             String    @id @default(uuid())
-  name           String?
+  name           String
   email          String    @unique
   emailVerified  DateTime?
   address        String?
   profileImage   String?
-  hashedPassword String?
+  hashedPassword String
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  isAdmin        Boolean   @default(false)
+  role           Role      @default(USER)
   orders         Order[]   // Relation to Order
+  accounts      Account[]
+  sessions      Session[]
 }
+
+model Session{
+   id             String    @id @default(uuid())
+   sessionToken   String    @unique
+   userId         String
+   expire         DateTime
+   user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("sessions")
+}
+
+enum Role{
+  USER
+  ADMIN
+}
+
 
 model Order {
   id               String        @id @default(uuid())

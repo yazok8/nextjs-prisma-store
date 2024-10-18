@@ -67,6 +67,7 @@ export default function UserSignUp() {
         });
       }
     } catch (error) {
+      console.error("Sign-up failed:", error);
       toast({
         title: "Error",
         description: "Something went wrong",
@@ -86,8 +87,11 @@ export default function UserSignUp() {
               type="text"
               {...register("name")}
               placeholder="Enter your name"
+              className="mt-1 block w-full"
             />
-            {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -97,8 +101,11 @@ export default function UserSignUp() {
               type="email"
               {...register("email")}
               placeholder="Enter your email"
+              className="mt-1 block w-full"
             />
-            {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            )}
           </div>
 
           <div className="mb-4">
@@ -108,8 +115,13 @@ export default function UserSignUp() {
               type="password"
               {...register("password")}
               placeholder="Enter your password"
+              className="mt-1 block w-full"
             />
-            {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <div className="mt-4">
@@ -118,14 +130,14 @@ export default function UserSignUp() {
             </Button>
           </div>
         </form>
-        <p className="text-sm my-3">
+        <p className="text-sm my-3 text-center">
           Already have an account?{" "}
-          <a
-            className="text-blue-700 cursor-pointer"
+          <span
+            className="text-blue-700 cursor-pointer text-sm underline"
             onClick={() => router.push("/user/sign-in")}
           >
             Sign in here
-          </a>
+          </span>
         </p>
       </div>
     </div>

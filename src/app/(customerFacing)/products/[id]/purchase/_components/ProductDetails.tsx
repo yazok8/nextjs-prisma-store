@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SetQuantity from "../../../_components/SetQuantity";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export type ProductProps = {
   product: {
@@ -104,16 +105,17 @@ export default function ProductDetails({ product }: ProductProps) {
           />
         </div>
 
-        <div className="flex flex-col">
-          <div className="text-lg">
+        <Card className="flex flex-col border-none">
+          <CardHeader className="text-lg flex">
+          <CardTitle className="text-2xl font-bold p-0">{product.name}</CardTitle>
             {formatCurrency(product.priceInCents / 100)}
-          </div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          </CardHeader>
+
           <HorizontalLine />
           {/* Remove height constraints and allow text to grow */}
-          <div className="text-muted-foreground sm:pr-0">
+          <CardDescription className="text-muted-foreground sm:pr-0">
             {product.description}
-          </div>
+          </CardDescription>
           <HorizontalLine />
           <div className="flex flex-col">
             <span className="text-slate-500 font-semibold">Category: {product.category}</span>
@@ -164,7 +166,7 @@ export default function ProductDetails({ product }: ProductProps) {
               </>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </>
   );

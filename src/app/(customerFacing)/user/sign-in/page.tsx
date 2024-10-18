@@ -1,3 +1,5 @@
+// src/app/user/sign-in/page.tsx
+
 "use client";
 
 import * as z from "zod";
@@ -7,22 +9,25 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useToast } from "@/components/ui/use-toast";
+import { signIn, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
-  hashedPassword: z
+  password: z
     .string()
     .min(1, "Password is required")
-    .min(8, "Password must have minimum 8 charecters"),
+    .min(8, "Password must have minimum 8 characters"),
 });
 
 type SignInFormValues = z.infer<typeof formSchema>;
 
-export default function Login() {
+export default function SignIn() {
   const { toast } = useToast();
   const router = useRouter();
+  const { data: session, status } = useSession();
+
   const {
     handleSubmit,
     formState: { errors },
@@ -31,75 +36,94 @@ export default function Login() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      hashedPassword: "",
+      password: "",
     },
   });
 
-  async function onSubmit(values: SignInFormValues) {
-    const callbackUrl = "/"; // Or a specific URL where you want to redirect
-    const signinCreds = await signIn("credentials", {
-      email: values.email,
-      password: values.hashedPassword,
-      redirect: false,
-      callbackUrl, // Pass only the final desired callbackUrl
-    });
+  useEffect(() => {
+    if (status === "authenticated") {
+      if (session?.user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
+    }
+  }, [session, status, router]);
 
-    if (signinCreds?.error) {
+  async function onSubmit(values: SignInFormValues) {
+    try {
+      const result = await signIn("credentials", {
+        redirect: false, // Prevent automatic redirection
+        email: values.email,
+        password: values.password,
+      });
+
+      if (result?.error) {
+        toast({
+          title: "Error",
+          description: result.error || "Oops! something went wrong",
+          variant: "destructive",
+        });
+      }
+      // If no error, the useEffect will handle the redirect based on session
+    } catch (error) {
+      console.error("Login failed:", error);
       toast({
         title: "Error",
         description: "Oops! something went wrong",
         variant: "destructive",
       });
-    } else {
-      router.push(callbackUrl);
-      router.refresh();
     }
   }
 
-  async function SignUp() {
-    router.push("/user/sign-up");
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-[85vh] overflow-hidden p-5">
+    <div className="flex items-center justify-center min-h-screen p-5">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <form onSubmit={handleSubmit(onSubmit)} className="sign-up-form">
-          <div className="max-w-sm">
+        <form onSubmit={handleSubmit(onSubmit)} className="sign-in-form">
+          <div className="mb-4">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              {...register("email")} // Register the email input
+              {...register("email")}
               placeholder="Enter your email"
+              className="mt-1 block w-full"
             />
-
-            {errors.email && <p>{errors.email.message}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            )}
           </div>
 
-          <div className="max-w-sm">
-            <Label htmlFor="hashedPassword">Password</Label>
+          <div className="mb-4">
+            <Label htmlFor="password">Password</Label>
             <Input
-              id="hashedPassword"
+              id="password"
               type="password"
-              {...register("hashedPassword")}
+              {...register("password")}
               placeholder="Enter your password"
+              className="mt-1 block w-full"
             />
-            {errors.hashedPassword && <p>{errors.hashedPassword.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
+
           <div className="mt-4">
-            <Button type="submit">Sign in</Button>
+            <Button type="submit" className="w-full">
+              Sign in
+            </Button>
           </div>
         </form>
-        <p className="text-sm my-3">
-          If you don&apos;t have an account, please{" "}
-          <a
-            className="text-blue-700 cursor-pointer text-sm"
-            onClick={() => SignUp()}
-            type="submit"
+        <p className="text-sm my-3 text-center">
+          Don&apos;t have an account?{" "}
+          <span
+            className="text-blue-700 cursor-pointer text-sm underline"
+            onClick={() => router.push("/user/sign-up")}
           >
-            Click here
-          </a>{" "}
-          to sign up
+            Sign up here
+          </span>
         </p>
       </div>
     </div>

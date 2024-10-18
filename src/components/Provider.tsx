@@ -1,15 +1,20 @@
-"use client"
+// src/components/Providers.tsx
+"use client";
 
-import { SessionProvider } from 'next-auth/react'
-import React, { ReactNode } from 'react'
+import { SessionProvider } from "next-auth/react";
+import { CartContextProvider } from "@/app/webhooks/useCart";
+import React, { ReactNode } from "react";
 
-interface ProviderProps{
-    children:ReactNode
+interface ProvidersProps {
+  children: ReactNode;
 }
 
-
-export default function Provider({children}:ProviderProps) {
+export default function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>{children}</SessionProvider>
-  )
+    <SessionProvider>
+      <CartContextProvider>
+        {children}
+      </CartContextProvider>
+    </SessionProvider>
+  );
 }

@@ -1,13 +1,14 @@
+// src/app/layout.tsx or RootLayout.tsx
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
-import Provider from "@/components/Provider";
-import { CartContextProvider } from "@/app/webhooks/useCart"; 
+import Providers from "@/components/Provider"; // Import the new Providers component
 import Footer from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin"],variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Online Office Store",
@@ -22,13 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn("min-h-screen flex flex-col bg-background font-sans antialiased", inter.variable)}>
-        <Provider>
-          <CartContextProvider>
-            <main className="flex-grow">{children}</main>
-            <Toaster />
-            <Footer />
-          </CartContextProvider>
-        </Provider>
+        <Providers>
+          <main className="flex-grow">{children}</main>
+          <Toaster />
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

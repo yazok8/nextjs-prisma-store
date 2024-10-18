@@ -41,6 +41,7 @@ const getMostNewestProducts = cache(() => {
 }, ["/", "getMostNewestProducts"], { revalidate: 60 * 60 * 24 });
 
 export default async function Homepage({ searchParams }: HomeProps) {
+
   try {
 
     const products = await getProducts(searchParams);

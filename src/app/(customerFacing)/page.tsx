@@ -2,24 +2,22 @@
 
 import React, { Suspense } from "react";
 import getProducts, { IProductParams } from "@/actions/products";
-import getAllCategories from "@/actions/categories";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { cache } from "@/lib/cache";
-import { Product, Category as PrismaCategory } from "@prisma/client";
+import { Product, Category as PrismaCategory, Category } from "@prisma/client";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import db from "@/db/db";
+import { ProductWithCategory } from "@/types/Category";
+import { getAllCategoriesWithProducts,getMostNewestProducts, getProductsByCategory } from "@/actions/categories";
+import { ProductGridSection } from "@/components/ProductsGrid";
 
-// Type Definitions
+// Props Interfaces
 
-export type Category = PrismaCategory;
-
-export interface ProductWithCategory extends Product {
-  category: Category | null;
+interface HomeProps {
+  searchParams: IProductParams;
 }
-
-// Utility Functions
 
 // Fisher-Yates shuffle algorithm to shuffle products
 export function shuffleArray(array: ProductWithCategory[]): ProductWithCategory[] {
@@ -31,122 +29,7 @@ export function shuffleArray(array: ProductWithCategory[]): ProductWithCategory[
   return shuffled;
 }
 
-// Data Fetching Functions
 
-export const getProductsByCategory = cache(
-  (categoryId: string): Promise<ProductWithCategory[]> => {
-    return db.product.findMany({
-      where: {
-        isAvailableForPurchase: true,
-        categoryId: categoryId,
-      },
-      include: {
-        category: true,
-      },
-      take: 6,
-    });
-  },
-  ["/", "getProductsByCategory"],
-  { revalidate: 60 * 60 * 24 } // Cache for 24 hours
-);
-
-const getMostNewestProducts = cache(
-  (): Promise<ProductWithCategory[]> => {
-    return db.product.findMany({
-      where: { isAvailableForPurchase: true },
-      orderBy: { createdAt: "desc" },
-      include: { category: true },
-      take: 6,
-    });
-  },
-  ["/", "getMostNewestProducts"],
-  { revalidate: 60 * 60 * 24 }
-);
-
-// Props Interfaces
-
-interface HomeProps {
-  searchParams: IProductParams;
-}
-
-type ProductGridSectionProps = {
-  title: string;
-  productsFetcher: () => Promise<ProductWithCategory[]>;
-  layout?: "flex" | "grid"; // Optional prop to define layout
-};
-
-// Components
-
-// ProductGridSection Component
-function ProductGridSection({
-  productsFetcher,
-  title,
-  layout = "flex", // Default to flex layout
-}: ProductGridSectionProps) {
-  // Define container classes based on layout prop
-  const containerClasses =
-    layout === "grid"
-      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-      : "flex flex-wrap gap-4";
-
-  return (
-    <div className="space-y-4">
-      {/* Section Header */}
-      <div className="flex gap-4 items-center">
-        <h2 className="text-2xl sm:text-3xl font-bold">{title}</h2>
-      </div>
-
-      {/* Products Container */}
-      <div className={containerClasses}>
-        <Suspense
-          fallback={
-            <>
-              <ProductCardSkeleton />
-              <ProductCardSkeleton />
-              <ProductCardSkeleton />
-              <ProductCardSkeleton />
-            </>
-          }
-        >
-          <ProductSuspense productsFetcher={productsFetcher} layout={layout} />
-        </Suspense>
-      </div>
-    </div>
-  );
-}
-
-// ProductSuspense Component
-async function ProductSuspense({
-  productsFetcher,
-  layout,
-}: {
-  productsFetcher: () => Promise<ProductWithCategory[]>;
-  layout: "flex" | "grid";
-}) {
-  try {
-    const products = await productsFetcher();
-    return (
-      <>
-        {products.map((product) =>
-          layout === "grid" ? (
-            <ProductCard key={product.id} {...product} />
-          ) : (
-            <div key={product.id} className="w-[250px] sm:w-[280px] flex-shrink-0">
-              <ProductCard {...product} />
-            </div>
-          )
-        )}
-      </>
-    );
-  } catch (error) {
-    console.error("Error fetching product grid section:", error);
-    return (
-      <div className="w-full h-full flex items-center justify-center text-red-500">
-        <p>Failed to load products.</p>
-      </div>
-    );
-  }
-}
 
 // Homepage Component
 export default async function Homepage({ searchParams }: HomeProps) {
@@ -235,24 +118,3 @@ export default async function Homepage({ searchParams }: HomeProps) {
   }
 }
 
-// Modified getAllCategories to fetch only categories with available products
-async function getAllCategoriesWithProducts(): Promise<Category[]> {
-  return cache(
-    (): Promise<Category[]> => {
-      return db.category.findMany({
-        where: {
-          products: {
-            some: {
-              isAvailableForPurchase: true,
-            },
-          },
-        },
-        orderBy: {
-          name: "asc",
-        },
-      });
-    },
-    ["/", "getAllCategoriesWithProducts"],
-    { revalidate: 60 * 60 * 24 } // Cache for 24 hours
-  )();
-}

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { Order } from "@prisma/client";
-import ClientLayout from "./ClientLayout"; // Import after removing 'session' prop
 
 export default async function ProfilePage() {
   try {

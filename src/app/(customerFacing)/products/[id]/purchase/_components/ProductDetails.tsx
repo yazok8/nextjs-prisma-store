@@ -119,7 +119,6 @@ export default function ProductDetails({ product }: ProductProps) {
           <HorizontalLine />
           <div className="flex flex-col">
             <span className="text-slate-500 font-semibold">Category: {product.category}</span>
-            <span className="text-slate-500 font-semibold">Brand</span>
           </div>
           <HorizontalLine />
           <div className="space-y-3 mt-5">

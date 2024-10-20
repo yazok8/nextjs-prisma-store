@@ -1,30 +1,15 @@
 "use client";
 
-import { formatCurrency } from "@/lib/formatters";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_components/ProductDetails";
+import { useCart } from "@/app/webhooks/useCart";
+import { ProductWithCategory } from "@/types/Category";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "@/app/webhooks/useCart";
-import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_components/ProductDetails";
-import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatters";
 import { CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
-type ProductCardProps = {
-  id: string;
-  name: string;
-  priceInCents: number;
-  description: string;
-  imagePath: string;
-  // Removed handleAddProductToCart from props
-};
+import { Button } from "./ui/button";
 
 export function ProductCard({
   id,
@@ -32,7 +17,8 @@ export function ProductCard({
   priceInCents,
   description,
   imagePath,
-}: ProductCardProps) {
+  category,
+}: ProductWithCategory) {
   const { handleAddProductToCart, cartProducts } = useCart();
 
   const [isProductInCart, setIsProductInCart] = useState(false);
@@ -47,28 +33,36 @@ export function ProductCard({
   });
 
   useEffect(() => {
-    const existsInCart = cartProducts?.some((item) => item.id === cartProduct.id);
+    const existsInCart = cartProducts?.some(
+      (item) => item.id === cartProduct.id
+    );
     setIsProductInCart(!!existsInCart);
   }, [cartProducts, cartProduct.id]);
 
-
   return (
-    <Card className="flex flex-col overflow-hidden border-none">
+    <Card className="flex flex-col overflow-hidden border-none transform hover:scale-105 transition-transform duration-200 ">
       <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`} className="flex justify-center">
-          <Image className="flex justify-center items-center" src={imagePath} objectFit="contain" fill  alt={name} objectPosition="center" />
+          <Image
+            className="flex justify-center items-center"
+            src={imagePath}
+            objectFit="contain"
+            fill
+            alt={name}
+            objectPosition="center"
+          />
         </Link>
       </div>
       <CardHeader>
         <Link href={`/products/${id}`} className="flex flex-col justify-between">
-          <CardTitle className="line-clamp-4">{name}</CardTitle>
-          <CardDescription className="font-bold text-black">{formatCurrency(priceInCents / 100)}</CardDescription>
+          <CardTitle className="line-clamp-1">{name}</CardTitle>
+          <CardDescription className="font-bold text-black">
+            {formatCurrency(priceInCents / 100)}
+          </CardDescription>
         </Link>
- 
       </CardHeader>
       <CardContent className="flex-grow">
         <Link href={`/products/${id}`}>
-          <p className="line-clamp-4">{description}</p>
         </Link>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
@@ -84,7 +78,12 @@ export function ProductCard({
             <Link href="/cart">View cart</Link>
           </Button>
         ) : (
-          <Button size="lg" variant="default" className="w-full" onClick={() => handleAddProductToCart(cartProduct)}>
+          <Button
+            size="lg"
+            variant="default"
+            className="w-full"
+            onClick={() => handleAddProductToCart(cartProduct)}
+          >
             Add To Cart
           </Button>
         )}
@@ -98,28 +97,27 @@ export function ProductCard({
 }
 
 export function ProductCardSkeleton() {
-    return (
-      <Card className="flex flex-col overflow-hidden animate-pulse max-w-[85%] mx-auto">
-        <div className="aspect-video bg-gray-300" />
-        <CardHeader>
-          <CardTitle>
-            <div className="w-3/4 h-6 rounded-full bg-gray-300" />
-          </CardTitle>
-          <CardDescription>
-            <div className="w-1/2 h-4 rounded-full bg-gray-300" />
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="w-full h-4 rounded-full bg-gray-300" />
-          <div className="w-full h-4 rounded-full bg-gray-300" />
-          <div className="w-3/4 h-4 rounded-full bg-gray-300" />
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <Button asChild size="lg" variant="default" className="w-full">
-            <Link href="#">Loading...</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-  
+  return (
+    <Card className="flex flex-col overflow-hidden animate-pulse max-w-[85%] mx-auto">
+      <div className="aspect-video bg-gray-300" />
+      <CardHeader>
+        <CardTitle>
+          <div className="w-3/4 h-6 rounded-full bg-gray-300" />
+        </CardTitle>
+        <CardDescription>
+          <div className="w-1/2 h-4 rounded-full bg-gray-300" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="w-full h-4 rounded-full bg-gray-300" />
+        <div className="w-full h-4 rounded-full bg-gray-300" />
+        <div className="w-3/4 h-4 rounded-full bg-gray-300" />
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2">
+        <Button asChild size="lg" variant="default" className="w-full">
+          <Link href="#">Loading...</Link>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

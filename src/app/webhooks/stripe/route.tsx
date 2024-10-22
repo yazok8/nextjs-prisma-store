@@ -1,10 +1,12 @@
-// /app/webhooks/stripe/route.ts
+// /src/app/webhooks/stripe/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import db from '@/db/db'; // Adjust the import path based on your project structure
 import { Resend } from 'resend';
 import PurchaseReceiptEmail from '@/email/PurchaseReceipt';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -14,9 +16,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 // Initialize Resend for sending emails
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
-
-
-// Handler for POST requests to /webhooks/stripe
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    // Read the raw body
+    // Read the raw body as text
     const rawBody = await req.text();
 
     // Verify the event with Stripe
@@ -165,18 +164,21 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     const purchasedProduct = order.orderProducts[0].product;
 
+    // Render the PurchaseReceiptEmail component to HTML
+    const emailHtml = ReactDOMServer.renderToStaticMarkup(
+      <PurchaseReceiptEmail
+        order={order}
+        product={purchasedProduct}
+        downloadVerificationId={downloadVerification.id}
+      />
+    );
+
     // Send receipt email
     await resend.emails.send({
       from: `Support <${process.env.SENDER_EMAIL}>`,
       to: user.email,
       subject: 'Order Confirmation',
-      react: (
-        <PurchaseReceiptEmail
-          order={order}
-          product={purchasedProduct}
-          downloadVerificationId={downloadVerification.id}
-        />
-      ),
+      html: emailHtml, // Use the rendered HTML string
     });
   }
 

@@ -1,5 +1,7 @@
 // src/app/(customerFacing)/user/page.tsx
 
+export const dynamic = 'force-dynamic';
+
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import React from "react";

@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+
+
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import db from "@/db/db";
 import { cache } from "@/lib/cache";

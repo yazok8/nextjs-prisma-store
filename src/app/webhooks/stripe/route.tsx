@@ -14,12 +14,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 // Initialize Resend for sending emails
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
-// Disable body parsing to get raw body
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+
 
 // Handler for POST requests to /webhooks/stripe
 export async function POST(req: NextRequest) {

@@ -44,12 +44,10 @@ export function ProductCard({
       <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`} className="flex justify-center">
           <Image
-            className="flex justify-center items-center"
+            className="flex justify-center items-center object-contain object-center"
             src={imagePath}
-            objectFit="contain"
             fill
             alt={name}
-            objectPosition="center"
           />
         </Link>
       </div>

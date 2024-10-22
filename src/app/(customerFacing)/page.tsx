@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-dynamic';
 
 import React, { Suspense } from "react";
 import getProducts, { IProductParams } from "@/actions/products";

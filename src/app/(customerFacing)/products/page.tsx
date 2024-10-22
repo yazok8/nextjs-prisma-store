@@ -1,6 +1,7 @@
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import db from "@/db/db";
 import { cache } from "@/lib/cache";
+import { ProductWithCategory } from "@/types/Category";
 import { Suspense } from "react";
 
 // Function to get products from the database, with caching applied
@@ -8,6 +9,7 @@ const getProducts = cache(() => {
   return db.product.findMany({
     where: { isAvailableForPurchase: true }, // Only fetch products that are available for purchase
     orderBy: { name: "asc" }, // Order the products alphabetically by name
+    include:{category:true}
   });
 }, ["/products", "getProducts"]); // Cache key based on the products path and function name
 
@@ -38,7 +40,7 @@ export default function ProductsPage() {
 
 // Component to fetch products and render them within the Suspense boundary
 async function ProductSuspense() {
-  const products = await getProducts(); // Fetch products using the cached function
+  const products:ProductWithCategory[] = await getProducts(); // Fetch products using the cached function
   return products.map((product) => (
     <ProductCard key={product.id} {...product} />
   ));

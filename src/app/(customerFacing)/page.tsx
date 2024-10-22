@@ -11,25 +11,14 @@ import Link from "next/link";
 import db from "@/db/db";
 import { ProductWithCategory } from "@/types/Category";
 import { getAllCategoriesWithProducts,getMostNewestProducts, getProductsByCategory } from "@/actions/categories";
-import { ProductGridSection } from "@/components/ProductsGrid";
+import { ProductGridSection } from "@/components/ProductsGridSection";
+import { shuffleArray } from "@/lib/utils";
 
 // Props Interfaces
 
 interface HomeProps {
   searchParams: IProductParams;
 }
-
-// Fisher-Yates shuffle algorithm to shuffle products
-export function shuffleArray(array: ProductWithCategory[]): ProductWithCategory[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-
 
 // Homepage Component
 export default async function Homepage({ searchParams }: HomeProps) {

@@ -1,15 +1,15 @@
+// /lib/db.ts or /db/db.ts
+
 import { PrismaClient } from "@prisma/client"
 
-const prismaClientSingleton = () => {
-  return new PrismaClient()
-}
-
+// Prevent multiple instances of Prisma Client in development
 declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined
 }
 
-const db = globalThis.prisma ?? prismaClientSingleton()
+const prisma = global.prisma || new PrismaClient()
 
-export default db
+if (process.env.NODE_ENV !== "production") global.prisma = prisma
 
-if (process.env.NODE_ENV !== "production") globalThis.prisma = db
+export default prisma

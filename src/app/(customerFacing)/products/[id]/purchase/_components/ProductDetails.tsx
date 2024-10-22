@@ -60,7 +60,7 @@ export default function ProductDetails({ product }: ProductProps) {
         setIsProductInCart(true);
       }
     }
-  }, [cartProducts]);
+  }, [cartProducts,product.id]);
 
   const HorizontalLine = () => {
     return <hr className="w-[30%] my-2" />;

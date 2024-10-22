@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ProcessedEvent {
+  id          String   @id
+  processedAt DateTime @default(now())
+}
+
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique

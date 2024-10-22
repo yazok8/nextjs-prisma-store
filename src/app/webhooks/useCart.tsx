@@ -359,7 +359,7 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     },
-    [cartProducts, paymentIntent, handleSetPaymentIntent, router, toast]
+    [cartProducts, paymentIntent, handleSetPaymentIntent]
   );
 
   // The value that will be provided to consuming components

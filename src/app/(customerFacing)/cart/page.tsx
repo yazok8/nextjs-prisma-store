@@ -8,7 +8,7 @@ export default async function Cart(){
     return (
         <div>
             <Container>
-                <CartClient currentUser = {currentUser}/>
+                <CartClient />
             </Container>
         </div>
     )

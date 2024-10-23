@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { z } from "zod";
-import db from "@/db/db";
+import { prisma } from '../../../../lib/prisma';
+
 
 // Define a schema for user data validation using zod
 const userSchema = z.object({
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
     const { name, email, hashedPassword } = userSchema.parse(body);
 
     // Check if email already exists
-    const emailExists = await db.user.findUnique({ where: { email: email } });
+    const emailExists = await prisma.user.findUnique({ where: { email: email } });
     if (emailExists) {
       // If the email is already in use, return a conflict status with an error message
       return NextResponse.json({ user: null, message: "User with this email already exists" }, { status: 409 });
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
     const lowercasedEmail = email.toLowerCase();
 
     // Create a new user record in the database with the provided data
-    const newUser = await db.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         email:lowercasedEmail,

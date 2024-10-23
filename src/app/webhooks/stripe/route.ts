@@ -2,9 +2,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import db from '@/db/db'; // Adjust the import path based on your project structure
 import { Resend } from 'resend';
 import { renderPurchaseReceiptEmail } from '@/lib/server/renderEmail';  // Import the utility function
+import { prisma } from '../../../lib/prisma';
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // Check if the event has already been processed to ensure idempotency
-    const existingEvent = await db.processedEvent.findUnique({
+    const existingEvent = await prisma.processedEvent.findUnique({
       where: { id: event.id },
     });
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Mark the event as processed
-    await db.processedEvent.create({
+    await prisma.processedEvent.create({
       data: {
         id: event.id,
         processedAt: new Date(),
@@ -85,7 +85,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   // Fetch the user from the database
-  const user = await db.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { email: true },
   });
@@ -102,7 +102,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     }
 
     // Fetch the product from the database
-    const product = await db.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
     });
 
@@ -112,7 +112,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     }
 
     // Create the order
-    const order = await db.order.create({
+    const order = await prisma.order.create({
       data: {
         userId,
         pricePaidInCents: paymentIntent.amount,
@@ -147,7 +147,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     // Increment discount code usage
     if (discountCodeId) {
-      await db.discountCode.update({
+      await prisma.discountCode.update({
         where: { id: discountCodeId },
         data: { uses: { increment: 1 } },
       });

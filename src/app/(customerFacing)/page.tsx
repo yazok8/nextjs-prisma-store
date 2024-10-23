@@ -1,14 +1,11 @@
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense } from "react";
+import React from "react";
 import getProducts, { IProductParams } from "@/actions/products";
-import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
-import { cache } from "@/lib/cache";
-import { Product, Category as PrismaCategory, Category } from "@prisma/client";
+import { Category as PrismaCategory } from "@prisma/client";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import db from "@/db/db";
 import { ProductWithCategory } from "@/types/Category";
 import { getAllCategoriesWithProducts,getMostNewestProducts, getProductsByCategory } from "@/actions/categories";
 import { ProductGridSection } from "@/components/ProductsGridSection";
@@ -24,7 +21,7 @@ interface HomeProps {
 export default async function Homepage({ searchParams }: HomeProps) {
   try {
     // Fetch all categories that have at least one available product
-    const categories: Category[] = await getAllCategoriesWithProducts();
+    const categories: PrismaCategory[] = await getAllCategoriesWithProducts();
 
     // Fetch products based on search parameters (optional)
     const products = await getProducts(searchParams);

@@ -5,7 +5,7 @@
 import { Nav, NavLink } from "@/components/Nav";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
 import { Role } from "@prisma/client";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import CartCounter from "../../components/CartCounter";
 import { useRouter } from "next/navigation";

@@ -4,10 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { UserSignOut, UserSignIn } from "@/components/UserAccountNav";
 import burgerMenu from "../../public/burgerMenu.svg";
-import { ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import { Nav, NavLink } from "./Nav";
+import { NavLink } from "./Nav";
 import SearchBar from "./SearhBar";
 
 type BurgerMenuProps = {

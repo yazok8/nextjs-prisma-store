@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/client/utils";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/components/Provider"; // Import the new Providers component
 import Footer from "@/components/Footer";

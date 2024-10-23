@@ -1,56 +1,45 @@
-import {
-  Body,
-  Html,
-  Preview,
-  Tailwind,
-  Head,
-  Container,
-  Heading,
-} from "@react-email/components";
-import OrderInformation from "./components/OrderInformation";
-import crypto from "crypto"
+// /src/email/PurchaseReceipt.tsx
+
+import React from 'react';
 
 type PurchaseReceiptEmailProps = {
-  product: {
-    name: string;
-    imagePath:string
-    description:string
-  };
   order: {
     id: string;
-    createdAt: Date;
     pricePaidInCents: number;
+    createdAt: Date;
+    // ...other order fields
   };
-  downloadVerificationId:string
+  product: {
+    id: string;
+    name: string;
+    imagePath: string;
+    description: string;
+    // ...other product fields
+  };
+  downloadVerificationId: string; // Added this prop
 };
 
-PurchaseReceiptEmail.PreviewProps = {
-  product: { name: "Product name",imagePath:"/products/90ddc519-9ddc-4991-91f1-3b31d07b995d-treeoflife2.jpg", description:"some description"},
-  order: { 
-    id:crypto.randomUUID(), 
-    createdAt:new Date(),
-    pricePaidInCents:10000,
-    },
-    downloadVerificationId:crypto.randomUUID()
-} satisfies PurchaseReceiptEmailProps;
-
-export default function PurchaseReceiptEmail({
-  product,
+const PurchaseReceiptEmail: React.FC<PurchaseReceiptEmailProps> = ({
   order,
-  downloadVerificationId
-}: PurchaseReceiptEmailProps) {
+  product,
+  downloadVerificationId,
+}) => {
   return (
-    <Html>
-      <Preview>Download {product.name} and view receipt</Preview>
-      <Tailwind>
-        <Head />
-        <Body className="font-sans bg-white">
-          <Container>
-            <Heading>Purchase Receipt</Heading>
-            <OrderInformation order={order} product={product} downloadVerificationId={downloadVerificationId}/>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+    <html>
+      <body>
+        <h1>Thank you for your purchase!</h1>
+        <p>Order ID: {order.id}</p>
+        <p>Product: {product.name}</p>
+        <p>Amount Paid: ${(order.pricePaidInCents / 100).toFixed(2)}</p>
+        <p>Order Date: {order.createdAt.toDateString()}</p>
+        <p>
+          <a href={`https://yourdomain.com/download/${downloadVerificationId}`}>
+            Download Your Product
+          </a>
+        </p>
+      </body>
+    </html>
   );
-}
+};
+
+export default PurchaseReceiptEmail;

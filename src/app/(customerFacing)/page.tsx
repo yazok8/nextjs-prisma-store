@@ -12,7 +12,7 @@ import db from "@/db/db";
 import { ProductWithCategory } from "@/types/Category";
 import { getAllCategoriesWithProducts,getMostNewestProducts, getProductsByCategory } from "@/actions/categories";
 import { ProductGridSection } from "@/components/ProductsGridSection";
-import { shuffleArray } from "@/lib/utils";
+import { shuffleArray } from "@/lib/client/utils"; 
 
 // Props Interfaces
 

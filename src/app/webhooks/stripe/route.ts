@@ -1,12 +1,10 @@
-// /src/app/webhooks/stripe/route.ts
+// /app/webhooks/stripe/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import db from '@/db/db'; // Adjust the import path based on your project structure
 import { Resend } from 'resend';
-import PurchaseReceiptEmail from '@/email/PurchaseReceipt';
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
+import { renderPurchaseReceiptEmail } from '@/lib/server/renderEmail';  // Import the utility function
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -16,6 +14,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 // Initialize Resend for sending emails
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
+// Handler for POST requests to /webhooks/stripe
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -146,14 +145,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       },
     });
 
-    // Create download verification
-    const downloadVerification = await db.downloadVerification.create({
-      data: {
-        productId: product.id,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24-hour expiration
-      },
-    });
-
     // Increment discount code usage
     if (discountCodeId) {
       await db.discountCode.update({
@@ -164,16 +155,21 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
     const purchasedProduct = order.orderProducts[0].product;
 
-    // Render the PurchaseReceiptEmail component to HTML
-    const emailHtml = ReactDOMServer.renderToStaticMarkup(
-      <PurchaseReceiptEmail
-        order={order}
-        product={purchasedProduct}
-        downloadVerificationId={downloadVerification.id}
-      />
-    );
+    // Render the email using Handlebars template
+    const emailHtml = renderPurchaseReceiptEmail({
+      order: {
+        id: order.id,
+        pricePaidInCents: order.pricePaidInCents,
+        createdAt: order.createdAt,
+      },
+      product: {
+        id: purchasedProduct.id,
+        name: purchasedProduct.name,
+      },
+      downloadVerificationId: order.id, // Adjust as needed
+    });
 
-    // Send receipt email
+    // Send the receipt email using Resend
     await resend.emails.send({
       from: `Support <${process.env.SENDER_EMAIL}>`,
       to: user.email,

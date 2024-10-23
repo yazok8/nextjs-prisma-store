@@ -3,13 +3,9 @@
 import { Label } from "@radix-ui/react-label"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
-import { formatCurrency } from "@/lib/formatters"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { addProduct, updateProduct } from "../../_actions/products"
 import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom"
-import Image from "next/image"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { DiscountCodeType } from "@prisma/client"
 import { addDiscountCode } from "../../_actions/discountCodes"

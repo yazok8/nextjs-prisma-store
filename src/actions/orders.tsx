@@ -1,11 +1,11 @@
 "use server"
 
-import db from "@/db/db";
 import { z } from "zod";
 import { Resend } from 'resend';
 import OrderHistoryEmail from "@/email/OrderHistory";
 import { getDiscountedAmount, usableDiscountCodeWhere } from "@/lib/discountCodeHelper";
 import Stripe from "stripe";
+import { prisma } from '../lib/prisma';
 
 const emailShema=z.string().email()
 const resend = new Resend(process.env.RESEND_API_KEY as string);
@@ -21,7 +21,7 @@ export async function emailOrderHistory(
     return { error: "Invalid email address" };
   }
 
-  const user = await db.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: result.data },
     select: {
       email: true,
@@ -59,7 +59,7 @@ export async function emailOrderHistory(
       return Promise.all(
         order.orderProducts.map(async (orderProduct) => {
           const downloadVerificationId = (
-            await db.downloadVerification.create({
+            await prisma.downloadVerification.create({
               data: {
                 expiresAt: new Date(Date.now() + 24 * 1000 * 60 * 60), // 24-hour expiration
                 productId: orderProduct.product.id,
@@ -113,14 +113,14 @@ export async function createPaymentIntent(
 
   // Handle single-product checkout
   if (productId) {
-    const product = await db.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({ where: { id: productId } });
 
     if (!product) {
       return { error: "Product not found" };
     }
 
     const discountCode = discountCodeId
-      ? await db.discountCode.findUnique({
+      ? await prisma.discountCode.findUnique({
           where: { id: discountCodeId, ...usableDiscountCodeWhere(product.id) },
         })
       : null;
@@ -129,7 +129,7 @@ export async function createPaymentIntent(
       return { error: "Coupon has expired or is invalid" };
     }
 
-    const existingOrder = await db.order.findFirst({
+    const existingOrder = await prisma.order.findFirst({
       where: {
         user: { email },
         orderProducts: {
@@ -155,10 +155,10 @@ export async function createPaymentIntent(
   // Handle cart checkout
   if (cart && cart.length > 0) {
     for (const cartItem of cart) {
-      const product = await db.product.findUnique({ where: { id: cartItem.id } });
+      const product = await prisma.product.findUnique({ where: { id: cartItem.id } });
       if (!product) return { error: `Product with ID ${cartItem.id} not found` };
 
-      const existingOrder = await db.order.findFirst({
+      const existingOrder = await prisma.order.findFirst({
         where: {
           user: { email },
           orderProducts: {

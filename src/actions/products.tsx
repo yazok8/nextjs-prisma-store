@@ -1,7 +1,7 @@
 // src/actions/products.ts
 
-import db from "@/db/db";
 import { Product } from "@prisma/client";
+import { prisma } from '../lib/prisma';
 
 export interface IProductParams {
   search?: string;
@@ -28,7 +28,7 @@ export default async function getProducts(params: IProductParams): Promise<Produ
   }
 
   try {
-    const fetchedProducts = await db.product.findMany(query);
+    const fetchedProducts = await prisma.product.findMany(query);
     console.log('Products fetched from database:', fetchedProducts);
     return fetchedProducts;
   } catch (error) {

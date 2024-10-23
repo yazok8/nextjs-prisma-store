@@ -3,12 +3,12 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import db from '@/db/db'; // Adjust the path as necessary
+import { prisma } from '../lib/prisma';
 import bcrypt from 'bcrypt';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt',
   },
@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
         const normalizedEmail = email.toLowerCase();
 
         // Find the user by email
-        const user = await db.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email: normalizedEmail },
         });
 

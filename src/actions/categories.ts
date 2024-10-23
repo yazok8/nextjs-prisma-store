@@ -1,12 +1,13 @@
-import db from "@/db/db";
+
 import { Category, ProductWithCategory } from "@/types/Category";
 import { cache } from "@/lib/cache";
+import { prisma } from '../lib/prisma';
 
 // Modified getAllCategories to fetch only categories with available products
 export async function getAllCategoriesWithProducts(): Promise<Category[]> {
     return cache(
       (): Promise<Category[]> => {
-        return db.category.findMany({
+        return prisma.category.findMany({
           where: {
             products: {
               some: {
@@ -27,7 +28,7 @@ export async function getAllCategoriesWithProducts(): Promise<Category[]> {
 
  export const getMostNewestProducts = cache(
     (): Promise<ProductWithCategory[]> => {
-      return db.product.findMany({
+      return prisma.product.findMany({
         where: { isAvailableForPurchase: true },
         orderBy: { createdAt: "desc" },
         include: { category: true },
@@ -41,7 +42,7 @@ export async function getAllCategoriesWithProducts(): Promise<Category[]> {
   
   export const getProductsByCategory = cache(
     (categoryId: string): Promise<ProductWithCategory[]> => {
-      return db.product.findMany({
+      return prisma.product.findMany({
         where: {
           isAvailableForPurchase: true,
           categoryId: categoryId,

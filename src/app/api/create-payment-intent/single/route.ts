@@ -1,7 +1,7 @@
 // /app/api/create-payment-intent/single/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
-import db from "@/db/db" // Adjust the import path based on your project structure
+import {prisma} from '@/lib/prisma'; // Adjust the import path based on your project structure
 import Stripe from "stripe"
 import { getServerSession } from "next-auth/next"
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const { productId, discountCodeId } = parsed.data
 
     // Fetch the product from the database
-    const product = await db.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id: productId },
     })
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // If a discount code is provided, validate it and adjust the amount accordingly
     if (discountCodeId) {
-      const discountCode = await db.discountCode.findUnique({
+      const discountCode = await prisma.discountCode.findUnique({
         where: { id: discountCodeId },
       })
 

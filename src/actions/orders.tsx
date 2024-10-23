@@ -5,7 +5,7 @@ import { Resend } from 'resend';
 import OrderHistoryEmail from "@/email/OrderHistory";
 import { getDiscountedAmount, usableDiscountCodeWhere } from "@/lib/discountCodeHelper";
 import Stripe from "stripe";
-import { prisma } from '../lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 const emailShema=z.string().email()
 const resend = new Resend(process.env.RESEND_API_KEY as string);

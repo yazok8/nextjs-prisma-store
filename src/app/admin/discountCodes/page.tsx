@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import db from "@/db/db"
+import {prisma} from '@/lib/prisma';
 import { Prisma } from "@prisma/client"
 import {
   formatDateTime,
@@ -39,7 +39,7 @@ import { ActiveToggleDropDownItem, DeleteDropDownItem } from "./_components/disc
 
 const WHERE_EXPIRED: Prisma.DiscountCodeWhereInput = {
   OR: [
-    { limit: { not: null, lte: db.discountCode.fields.uses } },
+    { limit: { not: null, lte: prisma.discountCode.fields.uses } },
     { expiresAt: { not: null, lte: new Date() } },
   ],
 }
@@ -59,7 +59,7 @@ const SELECT_FIELDS: Prisma.DiscountCodeSelect = {
 }
 
 function getExpiredDiscountCodes() {
-  return db.discountCode.findMany({
+  return prisma.discountCode.findMany({
     select: SELECT_FIELDS,
     where: WHERE_EXPIRED,
     orderBy: { createdAt: "asc" },
@@ -67,7 +67,7 @@ function getExpiredDiscountCodes() {
 }
 
 function getUnexpiredDiscountCodes() {
-  return db.discountCode.findMany({
+  return prisma.discountCode.findMany({
     select: SELECT_FIELDS,
     where: { NOT: WHERE_EXPIRED },
     orderBy: { createdAt: "asc" },

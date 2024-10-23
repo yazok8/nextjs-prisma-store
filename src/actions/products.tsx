@@ -1,7 +1,7 @@
 // src/actions/products.ts
 
 import { Product } from "@prisma/client";
-import { prisma } from '../lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 export interface IProductParams {
   search?: string;

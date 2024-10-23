@@ -1,18 +1,17 @@
 import { PageHeader } from "../_components/PageHeader";
-import Link from "next/link";
 import {
   TableBody,
   TableCell,
   TableRow,
 } from "@/components/ui/table";
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { MoreVertical } from "lucide-react";
 import { formatCurrency, formatNumber } from '../../../lib/formatters';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteDropDownItem } from "./_components/UserActions";
 
 function getUsers() {
-  return db.user.findMany({select:
+  return prisma.user.findMany({select:
     {id:true,
         email:true,
         orders:{select:{pricePaidInCents:true}}

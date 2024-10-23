@@ -1,5 +1,6 @@
-import db from "@/db/db";
+
 import { DiscountCodeType, Prisma } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
 
 // Function to generate a Prisma where input for finding usable discount codes
 export function usableDiscountCodeWhere(productId: string) {
@@ -12,7 +13,7 @@ export function usableDiscountCodeWhere(productId: string) {
       },
       {
         // The discount code must either have no usage limit or its limit hasn't been reached
-        OR: [{ limit: null }, { limit: { gt: db.discountCode.fields.uses } }],
+        OR: [{ limit: null }, { limit: { gt: prisma.discountCode.fields.uses } }],
       },
       {
         // The discount code must either not have an expiration date or it hasn't expired

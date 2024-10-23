@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 import { useCart } from "@/app/webhooks/useCart";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser } from "../../_actions/user";
 
 export default function CartSuccessPage() {
   const { handleClearCart, handleSetPaymentIntent } = useCart();

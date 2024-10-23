@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import db from '@/db/db';
+import {prisma} from '@/lib/prisma';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-04-10',
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
       if (typeof charge.payment_intent === 'string') {
         try {
-          await db.order.update({
+          await prisma.order.update({
             where: { paymentIntentId: charge.payment_intent },
             data: {
               status: 'complete',

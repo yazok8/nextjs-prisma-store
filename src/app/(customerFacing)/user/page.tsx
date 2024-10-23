@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic';
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import React from "react";
-import db from "@/db/db";
 import Link from "next/link";
 import {
   Table,
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { Order } from "@prisma/client";
+import {prisma} from '@/lib/prisma';
 
 export default async function ProfilePage() {
   try {
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
       );
     }
 
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         email: session.user.email,
       },

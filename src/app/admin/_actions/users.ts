@@ -1,11 +1,11 @@
 "use server"
 
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 
 
 export async function deleteUser(id: string) {
   try {
-    const user = await db.user.delete({ where: { id } });
+    const user = await prisma.user.delete({ where: { id } });
     if (!user) {
       console.error(`User with id ${id} not found`);
       throw new Error("User not found");

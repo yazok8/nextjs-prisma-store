@@ -4,7 +4,6 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Trash } from 'lucide-react';
-import { useState } from 'react';
 
 type DeleteCategoryDropDownItemProps = {
   id: string;

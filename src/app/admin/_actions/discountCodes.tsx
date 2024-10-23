@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { DiscountCodeType } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import z from "zod";
@@ -50,7 +50,7 @@ const addSchema = z
   
     const data = result.data
   
-    await db.discountCode.create({
+    await prisma.discountCode.create({
       data: {
         code: data.code,
         discountAmount: data.discountAmount,
@@ -69,11 +69,11 @@ const addSchema = z
 }
 
 export async function toggleDiscountCodeActive(id:string, isActive: boolean){
-    await db.discountCode.update({where:{id}, data:{isActive}})
+    await prisma.discountCode.update({where:{id}, data:{isActive}})
 }; 
 
 export async function deleteDiscoundCode(id:string){
-    const discountCode= await db.discountCode.delete({where:{id}})
+    const discountCode= await prisma.discountCode.delete({where:{id}})
 
     if(discountCode==null) return notFound()
     

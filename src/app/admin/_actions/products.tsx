@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { z } from "zod";
 import fs from "fs/promises";
 import { File } from "buffer";
@@ -40,7 +40,7 @@ export async function addProduct(prevState: unknown, formData: FormData) {
   const data = result.data;
 
   // Verify that the category exists
-  const categoryExists = await db.category.findUnique({
+  const categoryExists = await prisma.category.findUnique({
     where: { id: data.categoryId },
   });
 
@@ -60,7 +60,7 @@ export async function addProduct(prevState: unknown, formData: FormData) {
   );
 
   // Create the product in the database
-  await db.product.create({
+  await prisma.product.create({
     data: {
       isAvailableForPurchase: false,
       name: data.name,
@@ -91,7 +91,7 @@ export async function updateProduct(
   }
 
   const data = result.data;
-  const product = await db.product.findUnique({ where: { id } });
+  const product = await prisma.product.findUnique({ where: { id } });
 
   if (!product) return notFound();
 
@@ -109,7 +109,7 @@ export async function updateProduct(
 
   // If categoryId is provided, verify it exists
   if (data.categoryId) {
-    const categoryExists = await db.category.findUnique({
+    const categoryExists = await prisma.category.findUnique({
       where: { id: data.categoryId },
     });
 
@@ -119,7 +119,7 @@ export async function updateProduct(
   }
 
   // Update the product in the database
-  await db.product.update({
+  await prisma.product.update({
     where: { id },
     data: {
       name: data.name,
@@ -143,7 +143,7 @@ export async function toggleProductAvailability(
   id: string,
   isAvailableForPurchase: boolean
 ) {
-  await db.product.update({
+  await prisma.product.update({
     where: { id },
     data: { isAvailableForPurchase },
   });
@@ -154,7 +154,7 @@ export async function toggleProductAvailability(
 
 // Function to delete a product
 export async function deleteProduct(id: string) {
-  const product = await db.product.delete({ where: { id } });
+  const product = await prisma.product.delete({ where: { id } });
 
   if (!product) return notFound();
 

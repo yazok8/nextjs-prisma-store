@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CartProductType } from "../../products/[id]/purchase/_components/ProductDetails";
 
 interface CartCheckoutFormProps {
   totalAmount: number;

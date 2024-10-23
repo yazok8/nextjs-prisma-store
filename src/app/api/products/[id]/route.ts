@@ -1,8 +1,9 @@
 // src/app/api/products/[id]/route.ts
 
-import db from "@/db/db";
+
 import { NextRequest, NextResponse } from "next/server";
-import { Order } from "@prisma/client";
+import {prisma} from '@/lib/prisma';
+
 
 export async function GET(
   req: NextRequest, 
@@ -18,7 +19,7 @@ export async function GET(
   }
 
   try {
-    const product = await db.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id },
       include: { category: true }, // Include category details
     });

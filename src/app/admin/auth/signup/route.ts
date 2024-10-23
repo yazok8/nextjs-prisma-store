@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { z } from "zod";
-import { prisma } from '../../../../lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 
 // Define a schema for user data validation using zod

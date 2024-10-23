@@ -1,12 +1,13 @@
 "use server";
 
-import db from "@/db/db";
+
 import { notFound, redirect } from "next/navigation";
 import fs from "fs/promises";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import {prisma} from '@/lib/prisma';
 
 const imageSchema = z
   .custom<File>((file) => file instanceof File && (file.size === 0 || file.type.startsWith("image/")), {
@@ -28,7 +29,7 @@ export async function updateUser(id: string, prevState: unknown, formData: FormD
   }
 
   const data = result.data;
-  const user = await db.user.findUnique({ where: { id } });
+  const user = await prisma.user.findUnique({ where: { id } });
 
   if (!user) return notFound();
 
@@ -56,7 +57,7 @@ export async function updateUser(id: string, prevState: unknown, formData: FormD
     console.log("Some user details are missing");
   }
 
-  await db.user.update({
+  await prisma.user.update({
     where: { id },
     data: {
       name: data.name,
@@ -84,7 +85,7 @@ export async function getCurrentUser() {
     if (!session?.user?.email) {
       return null;
     }
-    const currentUser = await db.user.findUnique({
+    const currentUser = await prisma.user.findUnique({
       where: {
         email: session?.user?.email,
       },

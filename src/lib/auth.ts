@@ -1,23 +1,23 @@
 // src/lib/auth.ts
 
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { prisma } from '../lib/prisma';
-import bcrypt from 'bcrypt';
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import {prisma} from '@/lib/prisma';
+import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",  
   },
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'john@gmail.com' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email", placeholder: "john@gmail.com" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials) {
@@ -26,12 +26,15 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Type Assertion to inform TypeScript about credentials structure
-        const { email, password } = credentials as { email: string; password: string };
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
 
         console.log(`Attempting to authenticate user with email: ${email}`);
 
         if (!email || !password) {
-          console.log('Missing email or password');
+          console.log("Missing email or password");
           return null;
         }
 
@@ -44,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          console.log('User not found for email:', email);
+          console.log("User not found for email:", email);
           return null;
         }
 
@@ -52,11 +55,11 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(password, user.hashedPassword);
 
         if (!isValid) {
-          console.log('Invalid password for email:', email);
+          console.log("Invalid password for email:", email);
           return null;
         }
 
-        console.log('User authenticated successfully');
+        console.log("User authenticated successfully");
 
         return {
           id: user.id,
@@ -88,6 +91,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/user/sign-in',
+    signIn: "/user/sign-in",
   },
+  debug: process.env.NODE_ENV === 'development', // Enable debug logs in development
 };

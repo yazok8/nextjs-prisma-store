@@ -2,7 +2,7 @@
 
 import { getCurrentUser } from "@/app/(customerFacing)/_actions/user";
 import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_components/ProductDetails";
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -43,9 +43,9 @@ export async function POST(req: Request) {
     const totalAmountInCents = calculateOrderAmount(items);
 
     // Start a transaction to create or update the order and order products
-    const order = await db.$transaction(async (prisma) => {
+    const order = await prisma.$transaction(async (db) => {
       // Upsert the order
-      const order = await prisma.order.upsert({
+      const order = await db.order.upsert({
         where: { paymentIntentId: payment_intent_id || "" },
         update: {
           userId: currentUser.id,
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
       // Delete existing orderProducts for this order if updating
       if (payment_intent_id) {
-        await prisma.orderProduct.deleteMany({
+        await db.orderProduct.deleteMany({
           where: {
             orderId: order.id,
           },
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       }
 
       // Create new orderProducts
-      await prisma.orderProduct.createMany({
+      await db.orderProduct.createMany({
         data: items.map((item: CartProductType) => ({
           orderId: order.id,
           productId: item.id,
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
     }
 
     // Update the order with the paymentIntentId
-    await db.order.update({
+    await prisma.order.update({
       where: { id: order.id },
       data: { paymentIntentId: paymentIntent.id },
     });

@@ -1,8 +1,9 @@
 // src/app/(customerFacing)/products/[id]/page.tsx
 
-import db from "@/db/db";
+
 import { notFound } from "next/navigation";
 import ProductDetails from "./purchase/_components/ProductDetails";
+import {prisma} from '@/lib/prisma';
 
 type ProductPageProps = {
   product: {
@@ -21,7 +22,7 @@ export default async function ProductPage({
   params: { id: string };
 }) {
   // Fetch the product along with its category
-  const product = await db.product.findUnique({
+  const product = await prisma.product.findUnique({
     where: { id },
     include: { category: true }, // Include category details
   });

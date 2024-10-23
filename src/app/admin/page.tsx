@@ -7,14 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { authOptions } from "@/lib/auth";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 async function getSalesData() {
-  const data = await db.order.aggregate({
+  const data = await prisma.order.aggregate({
     _sum: { pricePaidInCents: true },
     _count: true,
   });
@@ -27,8 +27,8 @@ async function getSalesData() {
 
 async function getUserData() {
   const [userCount, orderData] = await Promise.all([
-    db.user.count(),
-    db.order.aggregate({
+    prisma.user.count(),
+    prisma.order.aggregate({
       _sum: { pricePaidInCents: true },
     }),
   ]);
@@ -44,8 +44,8 @@ async function getUserData() {
 
 async function getProductData() {
   const [activeCount, inactiveCount] = await Promise.all([
-    db.product.count({ where: { isAvailableForPurchase: true } }),
-    db.product.count({ where: { isAvailableForPurchase: false } }),
+    prisma.product.count({ where: { isAvailableForPurchase: true } }),
+    prisma.product.count({ where: { isAvailableForPurchase: false } }),
   ]);
 
   return {

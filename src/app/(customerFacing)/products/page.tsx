@@ -2,14 +2,14 @@ export const dynamic = 'force-dynamic';
 
 
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
-import db from "@/db/db";
+import {prisma} from '@/lib/prisma';
 import { cache } from "@/lib/cache";
 import { ProductWithCategory } from "@/types/Category";
 import { Suspense } from "react";
 
 // Function to get products from the database, with caching applied
 const getProducts = cache(() => {
-  return db.product.findMany({
+  return prisma.product.findMany({
     where: { isAvailableForPurchase: true }, // Only fetch products that are available for purchase
     orderBy: { name: "asc" }, // Order the products alphabetically by name
     include:{category:true}

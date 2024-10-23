@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { renderPurchaseReceiptEmail } from '@/lib/server/renderEmail';  // Import the utility function
-import { prisma } from '../../../lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {

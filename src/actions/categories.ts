@@ -1,7 +1,7 @@
 
 import { Category, ProductWithCategory } from "@/types/Category";
 import { cache } from "@/lib/cache";
-import { prisma } from '../lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 // Modified getAllCategories to fetch only categories with available products
 export async function getAllCategoriesWithProducts(): Promise<Category[]> {

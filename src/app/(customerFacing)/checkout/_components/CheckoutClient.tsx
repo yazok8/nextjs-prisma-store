@@ -2,12 +2,12 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect} from "react";
 import { useCart } from "@/app/webhooks/useCart";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
-import { Elements, LinkAuthenticationElement } from "@stripe/react-stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import CartCheckoutForm from "./CartCheckoutForm";
 
 const stripePromise = loadStripe(

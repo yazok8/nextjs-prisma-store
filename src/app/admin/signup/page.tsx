@@ -1,15 +1,15 @@
-// src/app/user/sign-up/page.tsx
+//src/app/admin/signup/page.tsx
 
 "use client";
 
 import * as z from "zod";
 import { Input } from "@/components/ui/input";
-import { Label } from "@radix-ui/react-label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
+import { Label } from "@/components/ui/label";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),

@@ -13,6 +13,7 @@ const protectedAdminPaths = ['/admin'];
 const excludedPaths = [
   '/admin/signin',
   '/admin/signup',
+  '/admin/auth/signup',
   '/api/auth/signin',
   '/api/auth/signup',
   '/api/auth/[...nextauth]',

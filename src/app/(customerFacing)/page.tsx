@@ -9,7 +9,7 @@ import Link from "next/link";
 import { ProductWithCategory } from "@/types/Category";
 import { getAllCategoriesWithProducts,getMostNewestProducts, getProductsByCategory } from "@/actions/categories";
 import { ProductGridSection } from "@/components/ProductsGridSection";
-import { shuffleArray } from "@/lib/client/utils"; 
+import { shuffleArray } from "@/lib/utils"; 
 
 // Props Interfaces
 
@@ -103,4 +103,3 @@ export default async function Homepage({ searchParams }: HomeProps) {
     );
   }
 }
-

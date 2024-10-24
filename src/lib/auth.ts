@@ -106,7 +106,6 @@ export const authOptions: NextAuthOptions = {
         secure: isProduction, // true in production, false otherwise
         sameSite: "lax",
         path: "/", // Must be '/'
-        // domain: undefined, // Ensure no domain is set
       },
     },
   },

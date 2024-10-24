@@ -20,7 +20,7 @@ model Category {
 
 model Product {
   id                     String                 @id @default(uuid())
-  name                   String
+  name                   String                 @unique
   priceInCents           Int
   filePath               String?
   imagePath              String

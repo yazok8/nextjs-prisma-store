@@ -8,28 +8,30 @@ const prisma = new PrismaClient();
 async function main() {
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Seed Admin User
-  const adminEmail = 'ykherfan@ecom.com';
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
-
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('SecureAdminPass123!', 10);
-    await prisma.user.create({
-      data: {
-        name: 'Yazan Kherfan',
-        email: adminEmail,
-        hashedPassword,
-        role: 'Admin',
-      },
+  // 1. Seed Admin User (Production Only)
+  if (isProduction) {
+    const adminEmail = 'ykherfan@ecom.com';
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail },
     });
-    console.log('✅ Admin user created successfully.');
-  } else {
-    console.log('ℹ️ Admin user already exists.');
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('SecureAdminPass123!', 10);
+      await prisma.user.create({
+        data: {
+          name: 'Yazan Kherfan',
+          email: adminEmail,
+          hashedPassword,
+          role: 'ADMIN', // Corrected to match Role enum
+        },
+      });
+      console.log('✅ Admin user created successfully.');
+    } else {
+      console.log('ℹ️ Admin user already exists.');
+    }
   }
 
-  // Seed Categories
+  // 2. Seed Categories (Both Environments)
   const categories = [
     'Phones',
     'Earbuds',
@@ -46,13 +48,13 @@ async function main() {
   for (const name of categories) {
     await prisma.category.upsert({
       where: { name },
-      update: {}, // No fields to update if the category exists
+      update: {},
       create: { name },
     });
     console.log(`✅ Category "${name}" ensured.`);
   }
 
-  // Fetch Categories with their IDs for Product Association
+  // 3. Fetch Categories with Their IDs for Product Association
   const categoryRecords = await prisma.category.findMany();
   const categoryMap: Record<string, string> = {};
 
@@ -60,15 +62,21 @@ async function main() {
     categoryMap[category.name] = category.id;
   });
 
-  // Seed Products
+  // 4. Check if Products are Already Seeded
+  const existingProducts = await prisma.product.findMany();
+  if (existingProducts.length > 0) {
+    console.log('ℹ️ Products already seeded.');
+    return;
+  }
+
+  // 5. Seed Products (Both Environments)
   const products = [
     {
       name: 'Wireless Headphones',
       priceInCents: 2999, // $29.99
       imagePath:
         'https://i.pcmag.com/imagery/roundups/01NpXLj2H3fMdvjfb6RBQFT-17..v1652307874.jpg',
-      description:
-        'High-quality wireless headphones with noise cancellation.',
+      description: 'High-quality wireless headphones with noise cancellation.',
       filePath: null,
       brand: 'Sony',
       category: 'Headphones',
@@ -149,9 +157,9 @@ async function main() {
   ];
 
   for (const product of products) {
-    // Check if the product already exists to avoid duplicates
+    // 6. Check if the Product Already Exists
     const existingProduct = await prisma.product.findUnique({
-      where: { name: product.name },
+      where: { name: product.name }, // Ensure 'name' is unique in the Prisma schema
     });
 
     if (existingProduct) {
@@ -159,7 +167,7 @@ async function main() {
       continue;
     }
 
-    // Find the category ID based on the category name
+    // 7. Retrieve the Category ID
     const categoryId = categoryMap[product.category];
     if (!categoryId) {
       console.warn(
@@ -168,6 +176,7 @@ async function main() {
       continue;
     }
 
+    // 8. Create the Product with Category Reference
     await prisma.product.create({
       data: {
         name: product.name,
@@ -176,7 +185,7 @@ async function main() {
         description: product.description,
         filePath: product.filePath,
         brand: product.brand,
-        categoryId: categoryId, // Associate product with category
+        categoryId: categoryId, // Associate with the correct category
       },
     });
 
@@ -192,5 +201,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await prisma.$disconnect(); // Corrected from 'db' to 'prisma'
   });

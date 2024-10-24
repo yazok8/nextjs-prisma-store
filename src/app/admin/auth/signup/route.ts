@@ -25,10 +25,7 @@ export async function POST(req: Request) {
     const emailExists = await prisma.user.findUnique({ where: { email } });
     if (emailExists) {
       // If the email is already in use, return a conflict status with an error message
-      return NextResponse.json(
-        { user: null, message: "User with this email already exists" },
-        { status: 409 }
-      );
+      return NextResponse.error();
     }
 
     // Hash the user-provided password
@@ -57,6 +54,6 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Sign-up failed:", err); // Log the actual error
     // If any error occurs, return an internal server error status with a generic error message
-    return NextResponse.json({ message: "Something went wrong" }, { status: 500 });
+    return NextResponse.error();
   }
 }

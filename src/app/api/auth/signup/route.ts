@@ -1,9 +1,9 @@
 // src/app/api/auth/signup/route.ts
 
-import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
-import {prisma} from '@/lib/prisma';
- // Adjust the path as necessary
+import { NextResponse } from "next/server";
+import bcrypt from "bcrypt";
+import { prisma } from "@/lib/prisma";
+// Adjust the path as necessary
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     // Validate input
     if (!email || !password || !name) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+      return NextResponse.error();
     }
 
     // Check if the user already exists
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ message: 'User already exists' }, { status: 409 });
+      return NextResponse.error();
     }
 
     // Hash the password with bcrypt
@@ -33,16 +33,19 @@ export async function POST(req: Request) {
         name,
         email: email.toLowerCase(),
         hashedPassword,
-        role: 'USER', // Default role
+        role: "USER", // Default role
       },
     });
 
     return NextResponse.json(
-      { message: 'User created successfully', user: { id: user.id, email: user.email, name: user.name } },
+      {
+        message: "User created successfully",
+        user: { id: user.id, email: user.email, name: user.name },
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error during user sign-up:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    console.error("Error during user sign-up:", error);
+    return NextResponse.error();
   }
 }

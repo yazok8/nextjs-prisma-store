@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error("Error in authorize function:", error);
+          console.log("Error in authorize function:", error);
           return null;
         }
       },

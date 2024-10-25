@@ -4,7 +4,7 @@
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { deleteDiscoundCode, toggleDiscountCodeActive } from '../../_actions/discountCodes';
+import { deleteDiscountCode, toggleDiscountCodeActive } from '../../_actions/discountCodes';
 
 export function ActiveToggleDropDownItem({id, isActive }:{id:string, isActive:boolean}){
 
@@ -32,7 +32,7 @@ export function DeleteDropDownItem({id,disabled}:{id:string, disabled:boolean}){
     disabled={disabled || isPending} 
     onClick={()=>{
         startTransition(async ()=>{
-            await deleteDiscoundCode(id)
+            await deleteDiscountCode(id)
             router.refresh()
         })
     }}>

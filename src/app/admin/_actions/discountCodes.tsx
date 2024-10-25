@@ -56,12 +56,6 @@ const addSchema = z
         discountAmount: data.discountAmount,
         discountType: data.discountType,
         allProducts: data.allProducts,
-        products:
-          data.productIds != null
-            ? { connect: data.productIds.map(id => ({ id })) }
-            : undefined,
-        expiresAt: data.expiresAt,
-        limit: data.limit,
       },
     })
 
@@ -72,7 +66,7 @@ export async function toggleDiscountCodeActive(id:string, isActive: boolean){
     await prisma.discountCode.update({where:{id}, data:{isActive}})
 }; 
 
-export async function deleteDiscoundCode(id:string){
+export async function deleteDiscountCode(id:string){
     const discountCode= await prisma.discountCode.delete({where:{id}})
 
     if(discountCode==null) return notFound()

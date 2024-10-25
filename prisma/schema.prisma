@@ -3,23 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model ProcessedEvent {
-  id          String   @id
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   processedAt DateTime @default(now())
 }
 
 model Category {
-  id       String    @id @default(uuid())
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
   name     String    @unique
   products Product[]
 }
 
 model Product {
-  id                     String                 @id @default(uuid())
+  id                     String                 @id @default(auto()) @map("_id") @db.ObjectId
   name                   String                 @unique
   priceInCents           Int
   filePath               String?
@@ -29,16 +29,15 @@ model Product {
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
   brand                  String?
-  categoryId             String?
+  categoryId             String?                @db.ObjectId
   downloadVerifications  DownloadVerification[]
   orderProducts          OrderProduct[]
   category               Category?              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  discountCodes          DiscountCode[]         @relation("DiscountCodeToProduct")
 }
 
 model Account {
-  id                String  @id @default(uuid())
-  userId            String  @map("user_id")
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
@@ -56,7 +55,7 @@ model Account {
 }
 
 model User {
-  id             String    @id @default(uuid())
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
   email          String    @unique
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -72,9 +71,9 @@ model User {
 }
 
 model Session {
-  id           String   @id @default(uuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
-  userId       String
+  userId       String   @db.ObjectId
   expire       DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -82,13 +81,13 @@ model Session {
 }
 
 model Order {
-  id               String         @id @default(uuid())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   pricePaidInCents Int
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  userId           String
-  discountCodeId   String?
-  addressId        String?
+  userId           String         @db.ObjectId
+  discountCodeId   String?        @db.ObjectId
+  addressId        String?        @db.ObjectId
   currency         String?
   deliveryStatus   String?
   paymentIntentId  String?        @unique
@@ -100,9 +99,9 @@ model Order {
 }
 
 model OrderProduct {
-  id        String  @id @default(uuid())
-  orderId   String
-  productId String
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String  @db.ObjectId
+  productId String  @db.ObjectId
   quantity  Int
   price     Int
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -110,30 +109,29 @@ model OrderProduct {
 }
 
 model DownloadVerification {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   expiresAt DateTime
   createdAt DateTime @default(now())
-  productId String
+  productId String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model DiscountCode {
-  id             String           @id @default(uuid())
-  code           String           @unique
+  id             String                @id @default(auto()) @map("_id") @db.ObjectId
+  code           String                @unique
   discountAmount Int
   discountType   DiscountCodeType
-  uses           Int              @default(0)
-  isActive       Boolean          @default(true)
-  allProducts    Boolean          @default(false)
-  createdAt      DateTime         @default(now())
+  uses           Int                   @default(0)
+  isActive       Boolean               @default(true)
+  allProducts    Boolean               @default(false)
+  createdAt      DateTime              @default(now())
   limit          Int?
   expiresAt      DateTime?
   orders         Order[]
-  products       Product[]        @relation("DiscountCodeToProduct")
 }
 
 model Address {
-  id          String  @id @default(uuid())
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   city        String?
   country     String?
   line1       String?
@@ -152,3 +150,4 @@ enum DiscountCodeType {
   PERCENTAGE
   FIXED
 }
+

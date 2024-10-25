@@ -1,7 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+// prisma/seed.ts
+
+import { PrismaClient, DiscountCodeType } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
+// Load environment variables from .env file
 dotenv.config();
 
 const prisma = new PrismaClient();
@@ -69,19 +72,57 @@ async function main() {
     categoryMap[category.name] = category.id;
   });
 
-  // 4. Check if Products are Already Seeded
+  // 4. Seed Discount Codes if they don't exist
+  const discountCodes = [
+    {
+      code: 'DISC10',
+      discountAmount: 10,
+      discountType: DiscountCodeType.PERCENTAGE,
+      uses: 0,
+      isActive: true,
+      allProducts: true, // Set to true since no specific products
+    },
+    {
+      code: 'DISC20',
+      discountAmount: 20,
+      discountType: DiscountCodeType.FIXED,
+      uses: 0,
+      isActive: true,
+      allProducts: true, // Set to true since no specific products
+    },
+    {
+      code: 'DISC15',
+      discountAmount: 15,
+      discountType: DiscountCodeType.PERCENTAGE,
+      uses: 0,
+      isActive: true,
+      allProducts: true, // Set to true since no specific products
+    },
+    // ... Add other discount codes as needed
+  ];
+
+  for (const dc of discountCodes) {
+    await prisma.discountCode.upsert({
+      where: { code: dc.code },
+      update: {},
+      create: dc,
+    });
+    console.log(`✅ DiscountCode "${dc.code}" ensured.`);
+  }
+
+  // 5. Check if Products are Already Seeded
   const existingProducts = await prisma.product.findMany();
   if (existingProducts.length > 0) {
     console.log('ℹ️ Products already seeded.');
     return;
   }
 
-  // 5. Seed Products (Both Environments)
+  // 6. Seed Products (Both Environments)
   const products = [
     {
       name: 'Wireless Headphones',
       priceInCents: 2999, // $29.99
-      imagePath: '/products/Headphones.webp', 
+      imagePath: '/products/Headphones.webp',
       description: 'High-quality wireless headphones with noise cancellation.',
       filePath: null,
       brand: 'Sony',
@@ -90,7 +131,7 @@ async function main() {
     {
       name: 'Smart Watch',
       priceInCents: 19999, // $199.99
-      imagePath: '/products/watch.jpeg', 
+      imagePath: '/products/watch.jpeg',
       description:
         'Stay connected and track your fitness with this smart watch.',
       filePath: null,
@@ -100,7 +141,7 @@ async function main() {
     {
       name: 'Gaming Keyboard',
       priceInCents: 4999, // $49.99
-      imagePath: '/products/GamingKeyboard.jpg', 
+      imagePath: '/products/GamingKeyboard.jpg',
       description:
         'Mechanical gaming keyboard with customizable RGB lighting.',
       filePath: null,
@@ -110,7 +151,7 @@ async function main() {
     {
       name: 'Espresso Machine',
       priceInCents: 8999, // $89.99
-      imagePath: '/products/CoffeeMaker.jpg', 
+      imagePath: '/products/CoffeeMaker.jpg',
       description:
         'Brew the perfect espresso with ease using this compact machine.',
       filePath: null,
@@ -120,7 +161,7 @@ async function main() {
     {
       name: 'Bluetooth Speaker',
       priceInCents: 3499, // $34.99
-      imagePath: '/products/Speaker.jpg', 
+      imagePath: '/products/Speaker.jpg',
       description:
         'Portable Bluetooth speaker with excellent sound quality.',
       filePath: null,
@@ -130,7 +171,7 @@ async function main() {
     {
       name: 'Stainless Steel Water Bottle',
       priceInCents: 1499, // $14.99
-      imagePath: '/products/WaterBattle.jpg', 
+      imagePath: '/products/WaterBattle.jpg',
       description:
         'Insulated water bottle keeps your drinks cold for 24 hours.',
       filePath: null,
@@ -140,7 +181,7 @@ async function main() {
     {
       name: 'LED Desk Lamp',
       priceInCents: 2599, // $25.99
-      imagePath: '/products/LedDeskLamp.jpg', 
+      imagePath: '/products/LedDeskLamp.jpg',
       description:
         'Adjustable LED desk lamp with multiple brightness settings.',
       filePath: null,
@@ -150,7 +191,7 @@ async function main() {
     {
       name: 'Electric Kettle',
       priceInCents: 2999, // $29.99
-      imagePath: '/products/Kettle.jpg', 
+      imagePath: '/products/Kettle.jpg',
       description:
         'Quick-boil electric kettle with auto shut-off feature.',
       filePath: null,
@@ -160,9 +201,9 @@ async function main() {
   ];
 
   for (const product of products) {
-    // 6. Check if the Product Already Exists
-    const existingProduct = await prisma.product.findFirst({
-      where: { name: product.name },
+    // 7. Check if the Product Already Exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { name: product.name }, // 'name' is unique
     });
 
     if (existingProduct) {
@@ -170,7 +211,7 @@ async function main() {
       continue;
     }
 
-    // 7. Retrieve the Category ID
+    // 8. Retrieve the Category ID
     const categoryId = categoryMap[product.category];
     if (!categoryId) {
       console.warn(
@@ -179,8 +220,8 @@ async function main() {
       continue;
     }
 
-    // 8. Create the Product with Category Reference
-    await prisma.product.create({
+    // 9. Create the Product
+    const createdProduct = await prisma.product.create({
       data: {
         name: product.name,
         priceInCents: product.priceInCents,
@@ -188,7 +229,9 @@ async function main() {
         description: product.description,
         filePath: product.filePath,
         brand: product.brand,
-        categoryId: categoryId, // Associate with the correct category
+        category: {
+          connect: { id: categoryId },
+        },
       },
     });
 
@@ -204,5 +247,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect(); // Corrected from 'db' to 'prisma'
+    await prisma.$disconnect();
   });

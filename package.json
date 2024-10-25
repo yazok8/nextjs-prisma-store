@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev -p 8080",
-    "build": "next build && prisma migrate deploy && prisma db seed",
+    "build": "next build && prisma db push && prisma db seed",
     "start": "next start -p 8080",
     "lint": "next lint",
     "email": "cp .env ./node_modules/react-email && email dev --dir src/email --port 3001",
@@ -39,6 +39,8 @@
     "iron-session": "^8.0.3",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.376.0",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.7.2",
     "next": "^14.2.3",
     "next-auth": "^4.24.9",
     "next-iron-session": "^4.2.0",

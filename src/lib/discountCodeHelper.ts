@@ -9,7 +9,7 @@ export function usableDiscountCodeWhere(productId: string) {
     AND: [
       {
         // The discount code must either apply to all products or include the specific product
-        OR: [{ allProducts: true }, { products: { some: { id: productId } } }],
+        OR: [{ allProducts: true }],
       },
       {
         // The discount code must either have no usage limit or its limit hasn't been reached

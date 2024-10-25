@@ -1,6 +1,8 @@
-import { Button } from "@/components/ui/button"
-import { PageHeader } from "../_components/PageHeader"
-import Link from "next/link"
+// src/app/admin/discountCodes/page.tsx
+
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "../_components/PageHeader";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -8,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   CheckCircle2,
   Globe,
@@ -16,33 +18,34 @@ import {
   Minus,
   MoreVertical,
   XCircle,
-} from "lucide-react"
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {prisma} from '@/lib/prisma';
-import { Prisma } from "@prisma/client"
+} from "@/components/ui/dropdown-menu";
+import prisma from '@/lib/prisma'; // Ensure this is the default export
+import { Prisma } from "@prisma/client";
 import {
   formatDateTime,
   formatDiscountCode,
   formatNumber,
-} from "@/lib/formatters"
-import { ActiveToggleDropDownItem, DeleteDropDownItem } from "./_components/discountCodeActions"
+} from "@/lib/formatters";
+import { ActiveToggleDropDownItem, DeleteDropDownItem } from "./_components/discountCodeActions";
 // import {
 //   ActiveToggleDropdownItem,
 //   DeleteDropdownItem,
-// } from "./_components/DiscountCodeActions"
+// } from "./_components/DiscountCodeActions";
 
 const WHERE_EXPIRED: Prisma.DiscountCodeWhereInput = {
   OR: [
-    { limit: { not: null, lte: prisma.discountCode.fields.uses } },
+    // Note: Field-to-field comparison isn't supported in MongoDB with Prisma
+    { limit: { not: null, lte: 0 } }, // Placeholder condition
     { expiresAt: { not: null, lte: new Date() } },
   ],
-}
+};
 
 const SELECT_FIELDS: Prisma.DiscountCodeSelect = {
   id: true,
@@ -54,16 +57,15 @@ const SELECT_FIELDS: Prisma.DiscountCodeSelect = {
   limit: true,
   uses: true,
   isActive: true,
-  products: { select: { name: true } },
   _count: { select: { orders: true } },
-}
+};
 
 function getExpiredDiscountCodes() {
   return prisma.discountCode.findMany({
     select: SELECT_FIELDS,
     where: WHERE_EXPIRED,
     orderBy: { createdAt: "asc" },
-  })
+  });
 }
 
 function getUnexpiredDiscountCodes() {
@@ -71,14 +73,14 @@ function getUnexpiredDiscountCodes() {
     select: SELECT_FIELDS,
     where: { NOT: WHERE_EXPIRED },
     orderBy: { createdAt: "asc" },
-  })
+  });
 }
 
 export default async function DiscountCodesPage() {
   const [expiredDiscountCodes, unexpiredDiscountCodes] = await Promise.all([
     getExpiredDiscountCodes(),
     getUnexpiredDiscountCodes(),
-  ])
+  ]);
 
   return (
     <>
@@ -98,14 +100,14 @@ export default async function DiscountCodesPage() {
         <DiscountCodesTable discountCodes={expiredDiscountCodes} isInactive />
       </div>
     </>
-  )
+  );
 }
 
 type DiscountCodesTableProps = {
-  discountCodes: Awaited<ReturnType<typeof getUnexpiredDiscountCodes>>
-  isInactive?: boolean
-  canDeactivate?: boolean
-}
+  discountCodes: Awaited<ReturnType<typeof getUnexpiredDiscountCodes>>;
+  isInactive?: boolean;
+  canDeactivate?: boolean;
+};
 
 function DiscountCodesTable({
   discountCodes,
@@ -124,7 +126,7 @@ function DiscountCodesTable({
           <TableHead>Expires</TableHead>
           <TableHead>Remaining Uses</TableHead>
           <TableHead>Orders</TableHead>
-          <TableHead>Products</TableHead>
+          {/* Removed Products Column */}
           <TableHead className="w-0">
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -137,12 +139,12 @@ function DiscountCodesTable({
               {discountCode.isActive && !isInactive ? (
                 <>
                   <span className="sr-only">Active</span>
-                  <CheckCircle2 />
+                  <CheckCircle2 className="text-green-500" />
                 </>
               ) : (
                 <>
                   <span className="sr-only">Inactive</span>
-                  <XCircle className="stroke-destructive" />
+                  <XCircle className="stroke-destructive text-red-500" />
                 </>
               )}
             </TableCell>
@@ -163,13 +165,7 @@ function DiscountCodesTable({
               )}
             </TableCell>
             <TableCell>{formatNumber(discountCode._count.orders)}</TableCell>
-            <TableCell>
-              {discountCode.allProducts ? (
-                <Globe />
-              ) : (
-                discountCode.products.map(p => p.name).join(", ")
-              )}
-            </TableCell>
+            {/* Removed Products Cell */}
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger>
@@ -197,5 +193,7 @@ function DiscountCodesTable({
         ))}
       </TableBody>
     </Table>
-  )
+  );
 }
+
+

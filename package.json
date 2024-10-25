@@ -13,7 +13,8 @@
     "lint": "next lint",
     "email": "cp .env ./node_modules/react-email && email dev --dir src/email --port 3001",
     "seed": "prisma db seed",
-    "migrate:prod": "prisma migrate deploy"
+    "migrate:prod": "prisma migrate deploy",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -161,8 +161,8 @@ async function main() {
 
   for (const product of products) {
     // 6. Check if the Product Already Exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { name: product.name }, // Ensure 'name' is unique in the Prisma schema
+    const existingProduct = await prisma.product.findFirst({
+      where: { name: product.name },
     });
 
     if (existingProduct) {

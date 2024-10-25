@@ -66,7 +66,7 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
           <CardTitle className="text-xl mx-2">Cart Checkout</CardTitle>
         </CardHeader>
         <CardContent>
-          <h2 className="font-semibold mb-2">Address Information</h2>
+          <h2 className="font-semibold mb-2 mx-2">Address Information</h2>
           <AddressElement
             options={{
               mode: "shipping",

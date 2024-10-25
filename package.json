@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+  "seed": "ts-node --esm --transpile-only prisma/seed.ts"
   },
   "scripts": {
     "dev": "next dev -p 8080",

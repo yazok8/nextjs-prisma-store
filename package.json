@@ -4,11 +4,11 @@
   "type": "module",
   "private": true,
   "prisma": {
-  "seed": "ts-node --esm --transpile-only prisma/seed.ts"
+    "seed": "node prisma/dist/seed.js"
   },
   "scripts": {
     "dev": "next dev -p 8080",
-    "build": "next build && prisma db push && prisma db seed",
+    "build": "next build && prisma db push && tsc -p tsconfig.seed.json && prisma db seed",
     "start": "next start -p 8080",
     "lint": "next lint",
     "email": "cp .env ./node_modules/react-email && email dev --dir src/email --port 3001",

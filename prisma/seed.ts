@@ -1,7 +1,8 @@
-// prisma/seed.ts
-
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -15,8 +16,14 @@ async function main() {
       where: { email: adminEmail },
     });
 
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      throw new Error('ADMIN_PASSWORD environment variable is not set.');
+    }
+
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('SecureAdminPass123!', 10);
+      const hashedPassword = await bcrypt.hash(`${adminPassword}`, 10);
       await prisma.user.create({
         data: {
           name: 'Yazan Kherfan',
@@ -74,8 +81,7 @@ async function main() {
     {
       name: 'Wireless Headphones',
       priceInCents: 2999, // $29.99
-      imagePath:
-        'https://i.pcmag.com/imagery/roundups/01NpXLj2H3fMdvjfb6RBQFT-17..v1652307874.jpg',
+      imagePath: '/products/Headphones.webp', 
       description: 'High-quality wireless headphones with noise cancellation.',
       filePath: null,
       brand: 'Sony',
@@ -84,8 +90,7 @@ async function main() {
     {
       name: 'Smart Watch',
       priceInCents: 19999, // $199.99
-      imagePath:
-        'https://cdn.mos.cms.futurecdn.net/gpgJMNyNnJG9fnZWUCoT68-320-80.jpeg',
+      imagePath: '/products/watch.jpeg', 
       description:
         'Stay connected and track your fitness with this smart watch.',
       filePath: null,
@@ -95,8 +100,7 @@ async function main() {
     {
       name: 'Gaming Keyboard',
       priceInCents: 4999, // $49.99
-      imagePath:
-        'https://m.media-amazon.com/images/I/71IOtS5z2eL._AC_UF894,1000_QL80_.jpg',
+      imagePath: '/products/GamingKeyboard.jpg', 
       description:
         'Mechanical gaming keyboard with customizable RGB lighting.',
       filePath: null,
@@ -106,7 +110,7 @@ async function main() {
     {
       name: 'Espresso Machine',
       priceInCents: 8999, // $89.99
-      imagePath: 'https://m.media-amazon.com/images/I/6190zcm9RVL.jpg',
+      imagePath: '/products/CoffeeMaker.jpg', 
       description:
         'Brew the perfect espresso with ease using this compact machine.',
       filePath: null,
@@ -116,7 +120,7 @@ async function main() {
     {
       name: 'Bluetooth Speaker',
       priceInCents: 3499, // $34.99
-      imagePath: 'https://m.media-amazon.com/images/I/718yxonHN8L.jpg',
+      imagePath: '/products/Speaker.jpg', 
       description:
         'Portable Bluetooth speaker with excellent sound quality.',
       filePath: null,
@@ -126,7 +130,7 @@ async function main() {
     {
       name: 'Stainless Steel Water Bottle',
       priceInCents: 1499, // $14.99
-      imagePath: 'https://m.media-amazon.com/images/I/71WfIv9f9IL.jpg',
+      imagePath: '/products/WaterBattle.jpg', 
       description:
         'Insulated water bottle keeps your drinks cold for 24 hours.',
       filePath: null,
@@ -136,8 +140,7 @@ async function main() {
     {
       name: 'LED Desk Lamp',
       priceInCents: 2599, // $25.99
-      imagePath:
-        'https://m.media-amazon.com/images/I/51u+FMn9OUL._AC_UF894,1000_QL80_.jpgg',
+      imagePath: '/products/LedDeskLamp.jpg', 
       description:
         'Adjustable LED desk lamp with multiple brightness settings.',
       filePath: null,
@@ -147,7 +150,7 @@ async function main() {
     {
       name: 'Electric Kettle',
       priceInCents: 2999, // $29.99
-      imagePath: 'https://m.media-amazon.com/images/I/71Q-pS+mTRL.jpg',
+      imagePath: '/products/Kettle.jpg', 
       description:
         'Quick-boil electric kettle with auto shut-off feature.',
       filePath: null,

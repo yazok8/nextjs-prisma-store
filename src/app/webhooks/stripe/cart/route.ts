@@ -1,5 +1,3 @@
-// src/app/webhooks/stripe/cart/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import {prisma} from '@/lib/prisma';

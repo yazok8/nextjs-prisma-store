@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {prisma} from '@/lib/prisma';
+import { File } from "buffer";
 
 const imageSchema = z
   .custom<File>((file) => file instanceof File && (file.size === 0 || file.type.startsWith("image/")), {
@@ -58,7 +59,7 @@ export async function updateUser(id: string, prevState: unknown, formData: FormD
   }
 
   await prisma.user.update({
-    where: { id },
+    where: { id:user.id },
     data: {
       name: data.name,
       email: data.email,

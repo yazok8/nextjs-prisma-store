@@ -130,14 +130,14 @@ export default function ProductDetails({ product }: ProductProps) {
                 </p>
                 <Button
                   size="lg"
-                  className="text-center flex w-52"
+                  className="text-center flex md:w-52"
                   onClick={() => handleRemoveCartProduct(cartProduct)}
                 >
                   Remove From Cart
                 </Button>
                 <Button
                   size="lg"
-                  className="w-44 ml-0 text-center flex md:w-52"
+                  className="ml-0 text-center flex md:w-52"
                   onClick={() => router.push("/cart")}
                 >
                   View cart

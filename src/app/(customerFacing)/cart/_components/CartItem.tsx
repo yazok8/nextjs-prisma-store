@@ -31,9 +31,11 @@ export default function CartItem({ item }: CartItemProps) {
         </Link>
 
         <div className='flex flex-col justify-between'>
+          <div className="line-clamp-3">
           <Link href={`/products/${item.id}`}>
             {item.name}
           </Link>
+          </div>
           <div className='w-[70px]'>
             <button
               className='text-slate-500 underline'

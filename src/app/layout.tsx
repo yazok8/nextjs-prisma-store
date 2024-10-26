@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils"; 
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/components/Provider"; // Import the new Providers component
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer/Footer";
 import * as Sentry from "@sentry/nextjs";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });

@@ -2,7 +2,13 @@
 
 "use client";
 
-import { useStripe, useElements, PaymentElement, AddressElement, LinkAuthenticationElement } from "@stripe/react-stripe-js";
+import {
+  useStripe,
+  useElements,
+  PaymentElement,
+  AddressElement,
+  LinkAuthenticationElement,
+} from "@stripe/react-stripe-js";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/formatters";
 import React, { FormEvent, useState } from "react";
@@ -17,7 +23,6 @@ import { Button } from "@/components/ui/button";
 
 interface CartCheckoutFormProps {
   totalAmount: number;
-  
 }
 
 export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps) {
@@ -28,66 +33,88 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
 
   const formattedPrice = formatCurrency(totalAmount / 100);
 
-  const [email, setEmail] = useState<string>();
+  const [email, setEmail] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!stripe || !elements) return;
-
-    setIsLoading(true);
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`,
-        // Optionally include receipt_email if you have it
-      },
-    });
-
-    if (error) {
+    if (!stripe || !elements) {
       toast({
-        title: "Payment Error",
-        description: error.message,
+        title: "Stripe not loaded",
+        description: "Please try again later.",
         variant: "destructive",
       });
-      setIsLoading(false);
       return;
     }
 
-    // The redirect will happen automatically
-    setIsLoading(false);
+    setIsLoading(true);
+
+    // Determine the return URL based on the environment
+    const isProduction = process.env.NODE_ENV === "production";
+    const return_url = isProduction
+      ? `${process.env.NEXT_PUBLIC_PROD_URL}/stripe/cartSuccess`
+      : `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`;
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url,
+          receipt_email: email, // Include the email for receipt
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Error",
+          description: error.message || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // The redirect will happen automatically if no error
+    } catch (err) {
+      toast({
+        title: "Payment Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
-    <form className="shadow-xl my-8" onSubmit={handleSubmit} id="payment-form">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl mx-2">Cart Checkout</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <h2 className="font-semibold mb-2 mx-2">Address Information</h2>
-          <AddressElement
-            options={{
-              mode: "shipping",
-              allowedCountries: ["US", "CA"],
-            }}
-          />
-          <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
-          <LinkAuthenticationElement
-            onChange={(e) => setEmail(e.value.email)}
-          />
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-full text-2xl"
-            size="lg"
-            disabled={isLoading || !stripe || !elements}
-          >
-            {isLoading ? "Processing..." : `Pay ${formattedPrice}`}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+    <form onSubmit={handleSubmit}>
+    <Card className="border-none">
+      <CardHeader>
+        <CardTitle>Checkout</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <AddressElement
+          options={{
+            mode: "shipping",
+            allowedCountries: ["US", "CA"],
+          }}
+        />
+        <PaymentElement />
+        <LinkAuthenticationElement
+          onChange={(e) => setEmail(e.value.email)}
+        />
+      </CardContent>
+      <CardFooter>
+        <Button
+          className="w-full"
+          size="lg"
+          disabled={stripe == null || elements == null || isLoading}
+        >
+          {isLoading
+            ? "Purchasing..."
+            : `Purchase - ${formattedPrice}`}
+        </Button>
+      </CardFooter>
+    </Card>
+  </form>
   );
 }

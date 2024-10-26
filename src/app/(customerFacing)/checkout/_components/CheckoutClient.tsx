@@ -33,7 +33,7 @@ export default function CheckoutClient() {
   };
 
   return (
-    <div className="w-full">
+    <div className="max-w-5xl w-full mx-auto space-y-8">
       {clientSecret ? (
         <Elements options={options} stripe={stripePromise}>
           <CartCheckoutForm totalAmount={cartSubTotalAmount} />

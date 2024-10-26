@@ -101,6 +101,12 @@ async function UserInfoTable({ user }: { user: UserInfoProps }) {
           </TableCell>
         </TableRow>
         <TableRow className="border-none">
+          <TableHead className="w-[100px] pl-0">Address:</TableHead>
+          <TableCell className="whitespace-break-spaces">
+            {user.address}
+          </TableCell>
+        </TableRow>
+        <TableRow className="border-none">
           <TableHead className="w-[100px] text-nowrap pl-0">My Orders:</TableHead>
           <TableCell className="whitespace-break-spaces">
             <Link

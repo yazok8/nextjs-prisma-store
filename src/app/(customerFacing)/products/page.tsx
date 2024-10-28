@@ -16,7 +16,7 @@ const getProducts = cache(() => {
   });
 }, ["/products", "getProducts"]); // Cache key based on the products path and function name
 
-// Main component for the Products page
+// Main component for the displaying all the Products page
 export default function ProductsPage() {
   return (
     // Grid layout for displaying products

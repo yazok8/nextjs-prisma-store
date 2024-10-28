@@ -17,7 +17,6 @@ export function ProductCard({
   priceInCents,
   description,
   imagePath,
-  category,
 }: ProductWithCategory) {
   const { handleAddProductToCart, cartProducts } = useCart();
 

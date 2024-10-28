@@ -77,6 +77,7 @@ export default async function Homepage({ searchParams }: HomeProps) {
                 title={category.name}
                 productsFetcher={() => getProductsByCategory(category.id)}
                 layout="flex" // Use flex layout for categories
+                categoryId={category.id}
               />
             </div>
           ))}

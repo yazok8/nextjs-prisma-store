@@ -3,6 +3,7 @@
 import {prisma} from '@/lib/prisma';
 import { z } from "zod";
 import fs from "fs/promises";
+import path from "path"; // Import path module
 import { File } from "buffer";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -48,14 +49,22 @@ export async function addProduct(prevState: unknown, formData: FormData) {
     return { categoryId: ["Selected category does not exist."] };
   }
 
+  const productsDir = path.join(process.cwd(), "public", "products");
+
   // Ensure directories exist
+  await fs.mkdir(productsDir, { recursive: true });
+
   await fs.mkdir("products", { recursive: true });
   await fs.mkdir("public/products", { recursive: true });
 
   // Generate a unique image path and save the image
-  const imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
+  const imageFileName = `${crypto.randomUUID()}-${data.image.name}`;
+  // Generate a unique image path and save the image
+  const imagePath = `/products/${imageFileName}`;
+  const absoluteImagePath = path.join(process.cwd(), "public", "products", imageFileName);
+
   await fs.writeFile(
-    `public${imagePath}`,
+    absoluteImagePath,
     Buffer.from(await data.image.arrayBuffer())
   );
 
@@ -80,11 +89,7 @@ export async function addProduct(prevState: unknown, formData: FormData) {
 }
 
 // Function to update an existing product
-export async function updateProduct(
-  id: string,
-  prevState: unknown,
-  formData: FormData
-) {
+export async function updateProduct(id: string, prevState: unknown, formData: FormData) {
   const result = editSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!result.success) {
     return result.error.formErrors.fieldErrors;
@@ -97,12 +102,20 @@ export async function updateProduct(
 
   let imagePath = product.imagePath;
   if (data.image && data.image.size > 0) {
+    // Define absolute paths
+    const oldImagePath = path.join(process.cwd(), "public", product.imagePath);
+    const productsDir = path.join(process.cwd(), "public", "products");
+
     // Delete the old image
-    await fs.unlink(`public${product.imagePath}`);
+    await fs.unlink(oldImagePath);
+
     // Generate a new image path and save the new image
-    imagePath = `/products/${crypto.randomUUID()}-${data.image.name}`;
+    const imageFileName = `${crypto.randomUUID()}-${data.image.name}`;
+    imagePath = `/products/${imageFileName}`;
+    const absoluteImagePath = path.join(process.cwd(), "public", "products", imageFileName);
+
     await fs.writeFile(
-      `public${imagePath}`,
+      absoluteImagePath,
       Buffer.from(await data.image.arrayBuffer())
     );
   }
@@ -158,8 +171,11 @@ export async function deleteProduct(id: string) {
 
   if (!product) return notFound();
 
+  // Define absolute path for the image
+  const absoluteImagePath = path.join(process.cwd(), "public", product.imagePath);
+
   // Delete the associated image
-  await fs.unlink(`public${product.imagePath}`);
+  await fs.unlink(absoluteImagePath);
 
   revalidatePath("/");
   revalidatePath("/products");

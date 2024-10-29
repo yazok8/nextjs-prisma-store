@@ -8,6 +8,7 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { S3 } from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
+import path from 'path';
 
 const fileSchema = z.instanceof(File, { message: "File is required." });
 
@@ -115,82 +116,134 @@ export async function addProduct(formData: FormData): Promise<void> {
   }
 }
 
+
+// Zod Schema for Validation
+const updateSchema = z.object({
+  name: z.string().min(1, { message: "Name is required." }),
+  description: z.string().min(1, { message: "Description is required." }),
+  priceInCents: z.coerce.number().int().min(1, { message: "Price must be at least 1 cent." }),
+  categoryId: z.string().min(1, { message: "Category is required." }),
+});
+
+
+// Helper function to convert Blob to Buffer
+export async function blobToBuffer(blob: Blob): Promise<Buffer> {
+  const arrayBuffer = await blob.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+
 // Function to update an existing product
-export async function updateProduct(id: string, formData: FormData): Promise<void> {
-  // Parse and validate formData using Zod schemas
-  const editSchema = addSchema.extend({
-    image: imageSchema.optional(),
-    categoryId: z.string().min(1, { message: "Category is required." }).optional(),
+// Update Product Function
+export async function updateProduct(id: string, formData: FormData) {
+  // Extract form fields
+  const name = formData.get('name');
+  const description = formData.get('description');
+  const priceInCents = formData.get('priceInCents');
+  const categoryId = formData.get('categoryId');
+  const image = formData.get('image'); // This could be a File or null
+
+  // Validate presence of required fields
+  if (!name || !description || !priceInCents || !categoryId) {
+    throw new Error("All fields except image are required.");
+  }
+
+  // Validate form data using Zod
+  const result = updateSchema.safeParse({
+    name: String(name),
+    description: String(description),
+    priceInCents: Number(priceInCents),
+    categoryId: String(categoryId),
   });
 
-  const result = editSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!result.success) {
-    // Handle validation errors by throwing an exception
-    throw new Error('Validation failed: ' + JSON.stringify(result.error.formErrors.fieldErrors));
+    const formattedErrors: Record<string, string[]> = result.error.flatten().fieldErrors;
+    throw formattedErrors;
   }
 
   const data = result.data;
-  const product = await prisma.product.findUnique({ where: { id } });
 
-  if (!product) {
-    throw new Error("Product not found.");
+  // Verify that the category exists
+  const categoryExists = await prisma.category.findUnique({
+    where: { id: data.categoryId },
+  });
+
+  if (!categoryExists) {
+    throw { categoryId: ["Selected category does not exist."] };
   }
 
-  let imageKey = product.imagePath;
+  // Initialize imagePath as existing imagePath
+  let imagePath = undefined;
 
-  try {
-    if (data.image && data.image.size > 0) {
-      // Upload the new image to S3
-      const newImageKey = await uploadImageToS3(data.image);
-
-      // Delete the old image from S3
-      const deleteParams = {
-        Bucket: process.env.AWS_S3_BUCKET_NAME as string,
-        Key: product.imagePath,
-      };
-
-      await s3.deleteObject(deleteParams).promise();
-
-      // Update imageKey to the new image
-      imageKey = newImageKey;
+  // If a new image is uploaded, handle the upload
+  if (image && image instanceof Blob) {
+    // Validate image file type
+    if (!image.type.startsWith("image/")) {
+      throw { image: ["Only image files are allowed."] };
     }
 
-    // If categoryId is provided, verify it exists
-    if (data.categoryId) {
-      const categoryExists = await prisma.category.findUnique({
-        where: { id: data.categoryId },
-      });
+    // Read the file as a Buffer
+    const imageBuffer = await blobToBuffer(image);
 
-      if (!categoryExists) {
-        throw new Error("Selected category does not exist.");
-      }
+    // Enforce file size limit (10 MB)
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (imageBuffer.length > MAX_SIZE) {
+      throw { image: ["Image size should not exceed 10 MB."] };
     }
 
-    // Update the product in the database
-    await prisma.product.update({
+    // Generate a unique filename
+    const originalFilename = (image as any).name || 'uploaded-image';
+    const fileExtension = path.extname(originalFilename) || '.jpg'; // Default to .jpg if no extension
+    const key = `products/${uuidv4()}${fileExtension}`;
+
+    // Ensure AWS_S3_BUCKET_NAME is set
+    if (!process.env.AWS_S3_BUCKET_NAME) {
+      throw new Error("AWS_S3_BUCKET_NAME environment variable is not set.");
+    }
+
+    // Upload image to S3
+    const params: S3.PutObjectRequest = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
+      Body: imageBuffer,
+      ContentType: image.type,
+    };
+
+    await s3.upload(params).promise();
+
+    imagePath = key;
+
+    // Optional: Delete the old image from S3 if exists
+    const existingProduct = await prisma.product.findUnique({
       where: { id },
-      data: {
-        name: data.name,
-        description: data.description,
-        priceInCents: data.priceInCents,
-        imagePath: imageKey,
-        categoryId: data.categoryId ?? product.categoryId,
-      },
+      select: { imagePath: true },
     });
 
-    // Revalidate relevant paths to update caches
-    revalidatePath("/");
-    revalidatePath("/products");
-
-    // Redirect to the admin products page
-    redirect("/admin/products");
-  } catch (error) {
-    console.error("Error updating product:", error);
-    // Handle errors by throwing an exception
-    throw new Error("An error occurred while updating the product.");
+    if (existingProduct && existingProduct.imagePath) {
+      try {
+        await s3.deleteObject({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: existingProduct.imagePath,
+        }).promise();
+      } catch (error) {
+        console.error("Error deleting old image from S3:", error);
+        // Decide whether to throw an error or continue
+      }
+    }
   }
-}
 
+  // Update the product in the database
+  await prisma.product.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+      priceInCents: data.priceInCents,
+      categoryId: data.categoryId,
+      imagePath: imagePath, // If imagePath is undefined, it won't update the field
+    },
+  });
+}
 
 // Wrapper function to handle update with a specific ID
 // src/app/admin/_actions/products.tsx

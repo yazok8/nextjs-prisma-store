@@ -20,6 +20,7 @@ export type ProductProps = {
     priceInCents: number;
     description: string;
     category:string
+    brand:string | null
   };
 };
 
@@ -85,23 +86,48 @@ export default function ProductDetails({ product }: ProductProps) {
     });
   }, [cartProduct]);
 
+    // Helper function to determine the correct image source
+    const getImageSrc = (path: string): string => {
+      if (path.startsWith("http://") || path.startsWith("https://")) {
+        // Absolute URL (e.g., images hosted on a CDN or external server)
+        return path;
+      } else if (path.startsWith("/")) {
+        // Relative path (e.g., images stored in the public folder)
+        return path;
+      } else {
+        // Assume the image is stored on S3
+        return `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${path}`;
+      }
+    };
+  
+    const imageSrc = getImageSrc(product.imagePath);
+
   return (
     <>
       <div className="flex flex-col gap-4 items-start h-full md:flex-row">
         <div className="aspect-video flex-shrink-0 w-4/12 relative justify-start md:w-1/12">
           <Image
-            src={product.imagePath}
+            src={imageSrc}
             fill
             alt={product.name}
             className="object-contain"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = "/fallback-image.png"; // Path to your fallback image
+            }}
           />
         </div>
         <div className="aspect-video flex-shrink-0 w-1/2 relative justify-end md:w-1/4">
-          <Image
-            src={product.imagePath}
+        <Image
+            className="flex justify-center items-center object-contain object-center"
+            src={imageSrc}
             fill
             alt={product.name}
-            className="object-contain"
+            sizes="(max-width: 768px) 100vw,
+                   (max-width: 1200px) 50vw,
+                   33vw"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = "/fallback-image.png"; // Path to your fallback image
+            }}
           />
         </div>
 
@@ -118,6 +144,7 @@ export default function ProductDetails({ product }: ProductProps) {
           </CardDescription>
           <HorizontalLine />
           <div className="flex flex-col">
+          <span className="text-slate-500 font-semibold">brand: {product.brand}</span>
             <span className="text-slate-500 font-semibold">Category: {product.category}</span>
           </div>
           <HorizontalLine />

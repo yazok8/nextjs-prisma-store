@@ -13,6 +13,7 @@ type ProductPageProps = {
     priceInCents: number;
     description: string;
     category: string; // Ensuring category is a string
+    brand:string | null;
   };
 };
 
@@ -36,6 +37,7 @@ export default async function ProductPage({
     name: product.name,
     priceInCents: product.priceInCents,
     description: product.description,
+    brand:product.brand,
     category: product.category ? product.category.name : 'Uncategorized', // Extract category name
   };
 

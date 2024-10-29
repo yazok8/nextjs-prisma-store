@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { formatCurrency } from "@/lib/formatters";
 import { CheckCircle } from "lucide-react";
 import { Button } from "./ui/button";
+import { getImageSrc } from "@/lib/imageHelper";
 
 export function ProductCard({
   id,
@@ -38,15 +39,23 @@ export function ProductCard({
     setIsProductInCart(!!existsInCart);
   }, [cartProducts, cartProduct.id]);
 
+  const imageSrc = getImageSrc(imagePath);
+
   return (
     <Card className="flex flex-col overflow-hidden border-none transform hover:scale-105 transition-transform duration-200 ">
       <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`} className="flex justify-center">
           <Image
             className="flex justify-center items-center object-contain object-center"
-            src={imagePath}
+            src={imageSrc}
             fill
             alt={name}
+            sizes="(max-width: 768px) 100vw,
+                   (max-width: 1200px) 50vw,
+                   33vw"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = "/fallback-image.png"; // Path to your fallback image
+            }}
           />
         </Link>
       </div>
@@ -60,6 +69,7 @@ export function ProductCard({
       </CardHeader>
       <CardContent className="flex-grow">
         <Link href={`/products/${id}`}>
+          {/* You can add additional content here if needed */}
         </Link>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">

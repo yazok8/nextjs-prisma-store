@@ -9,6 +9,8 @@ import { prisma } from "@/lib/prisma";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { S3 } from "aws-sdk";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // Custom Validation Error Class
 class ValidationError extends Error {
@@ -57,7 +59,7 @@ export async function updateUser(formData: FormData) {
     name: String(dataObj.name),
     email: String(dataObj.email),
     address: String(dataObj.address),
-    image: formData.get('image'),
+    image: formData.get("image"),
   });
 
   if (!result.success) {
@@ -79,7 +81,9 @@ export async function updateUser(formData: FormData) {
     // Enforce file size limit (10 MB)
     const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
     if (imageBuffer.length > MAX_SIZE) {
-      throw new ValidationError({ image: ["Image size should not exceed 10 MB."] });
+      throw new ValidationError({
+        image: ["Image size should not exceed 10 MB."],
+      });
     }
 
     // Generate a unique filename
@@ -144,4 +148,34 @@ export async function updateUser(formData: FormData) {
   // redirect("/user");
 
   return updatedUser; // Return the updated user data
+}
+
+export async function getSession() {
+  return await getServerSession(authOptions);
+}
+
+export async function getCurrentUser() {
+  try {
+    const session = await getSession();
+
+    if (!session?.user?.email) {
+      return null;
+    }
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        email: session?.user?.email,
+      },
+    });
+    if (!currentUser) {
+      return null;
+    }
+    return {
+      ...currentUser,
+      createdAT: currentUser.createdAt.toISOString(),
+      updatedAt: currentUser.updatedAt.toISOString(),
+      emailVerified: currentUser.emailVerified?.toISOString() || null,
+    };
+  } catch (error: any) {
+    return null;
+  }
 }

@@ -12,7 +12,7 @@ const s3 = new S3({
 
 // Function to generate a pre-signed URL
 export async function generatePresignedUrl(fileName:string, fileType:string) {
-  const key = `products/${uuidv4()}-${fileName}`;
+  const key = `users/${uuidv4()}-${fileName}`;
 
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME, // Your S3 bucket name

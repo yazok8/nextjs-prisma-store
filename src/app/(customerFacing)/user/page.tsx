@@ -1,7 +1,5 @@
 // src/app/(customerFacing)/user/page.tsx
 
-export const dynamic = 'force-dynamic';
-
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import React from "react";
@@ -15,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { Order } from "@prisma/client";
-import {prisma} from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
+import { getImageSrc } from "@/lib/imageHelper"; // Import the helper function
 
 export default async function ProfilePage() {
   try {
@@ -52,10 +51,11 @@ export default async function ProfilePage() {
         <Image
           style={{ borderRadius: "100px" }}
           className="text-muted-foreground"
-          src={user.profileImage ?? "/default-avatar.png"}
+          src={getImageSrc(user.profileImage)} // Use getImageSrc here
           height={200}
           width={200}
           alt="User Image"
+          // Note: onError handling is not straightforward in server components
         />
         <div className="mt-5">
           Edit your profile{" "}

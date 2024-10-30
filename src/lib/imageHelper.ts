@@ -1,8 +1,8 @@
-// src/lib/imageUtils.ts
+// src/lib/imageHelper.ts
 
 export const getImageSrc = (path: string | undefined | null): string => {
   if (!path) {
-    return '/fallback-image.png';
+    return '/default-avatar.png';
   }
 
   if (path.startsWith("http://") || path.startsWith("https://")) {

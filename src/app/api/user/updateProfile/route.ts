@@ -1,23 +1,36 @@
-// src/app/api/products/updateProduct/route.ts
+// src/app/api/user-profile/updateProfile/route.ts
 
-import { NextResponse } from 'next/server';
-import { updateProduct } from '@/app/admin/_actions/products';
-import { z } from 'zod';
-
-export const runtime = 'nodejs';
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { updateUser } from "@/app/(customerFacing)/_actions/user";
 
 export async function POST(request: Request) {
   try {
-    // Parse the form data
+    // Extract the 'id' from the query parameters
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { errors: { general: ["User ID is required."] } },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
 
-    // Invoke the centralized updateProduct action
-    const updatedProduct = await updateProduct(formData);
+    // Add the 'id' to formData to be used by updateUser
+    formData.append('id', id);
 
-    // Respond with success and the updated product
-    return NextResponse.json({ message: 'Product updated successfully', product: updatedProduct }, { status: 200 });
+    // Invoke the centralized updateUser action
+    const updatedUser = await updateUser(formData);
+
+    return NextResponse.json(
+      { message: 'User updated successfully', user: updatedUser },
+      { status: 200 }
+    );
   } catch (error: any) {
-    console.error("Error updating product:", error);
+    console.error("Error updating user:", error);
 
     // Determine the type of error and respond accordingly
     if (error instanceof z.ZodError) {

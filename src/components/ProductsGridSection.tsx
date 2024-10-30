@@ -80,7 +80,7 @@ export async function CategoryProductSuspense({
                     layout === "grid" ? (
                         <ProductCard key={product.id} {...product} />
                     ) : (
-                        <div key={product.id} className="w-[250px] sm:w-[280px] flex-shrink-0">
+                        <div key={product.id} className="w-[311px] sm:w-[280px] flex-shrink-0">
                             <ProductCard {...product} />
                         </div>
                     )

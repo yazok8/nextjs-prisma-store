@@ -30,11 +30,13 @@ export default async function Homepage({ searchParams }: HomeProps) {
     if (products.length === 0 && searchParams.search) {
       return (
         <main className="space-y-9">
+          <div className="w-full max-w-[750px]">
           <ProductGridSection
             title={`No Search Results found for "${searchParams.search}"`}
             productsFetcher={() => getMostNewestProducts()}
             layout="flex" // Use flex layout for this section
           />
+          </div>
         </main>
       );
     }

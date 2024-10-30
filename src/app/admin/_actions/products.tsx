@@ -119,6 +119,7 @@ export async function addProduct(formData: FormData): Promise<void> {
 
 // Zod Schema for Validation
 const updateSchema = z.object({
+  id: z.string().min(1, { message: "Product ID is required." }),
   name: z.string().min(1, { message: "Name is required." }),
   description: z.string().min(1, { message: "Description is required." }),
   priceInCents: z.coerce.number().int().min(1, { message: "Price must be at least 1 cent." }),
@@ -135,126 +136,130 @@ export async function blobToBuffer(blob: Blob): Promise<Buffer> {
 
 // Function to update an existing product
 // Update Product Function
-export async function updateProduct(id: string, formData: FormData) {
-  // Extract form fields
-  const name = formData.get('name');
-  const description = formData.get('description');
-  const priceInCents = formData.get('priceInCents');
-  const categoryId = formData.get('categoryId');
-  const image = formData.get('image'); // This could be a File or null
-
-  // Validate presence of required fields
-  if (!name || !description || !priceInCents || !categoryId) {
-    throw new Error("All fields except image are required.");
-  }
-
-  // Validate form data using Zod
-  const result = updateSchema.safeParse({
-    name: String(name),
-    description: String(description),
-    priceInCents: Number(priceInCents),
-    categoryId: String(categoryId),
-  });
-
-  if (!result.success) {
-    const formattedErrors: Record<string, string[]> = result.error.flatten().fieldErrors;
-    throw formattedErrors;
-  }
-
-  const data = result.data;
-
-  // Verify that the category exists
-  const categoryExists = await prisma.category.findUnique({
-    where: { id: data.categoryId },
-  });
-
-  if (!categoryExists) {
-    throw { categoryId: ["Selected category does not exist."] };
-  }
-
-  // Initialize imagePath as existing imagePath
-  let imagePath = undefined;
-
-  // If a new image is uploaded, handle the upload
-  if (image && image instanceof Blob) {
-    // Validate image file type
-    if (!image.type.startsWith("image/")) {
-      throw { image: ["Only image files are allowed."] };
-    }
-
-    // Read the file as a Buffer
-    const imageBuffer = await blobToBuffer(image);
-
-    // Enforce file size limit (10 MB)
-    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-    if (imageBuffer.length > MAX_SIZE) {
-      throw { image: ["Image size should not exceed 10 MB."] };
-    }
-
-    // Generate a unique filename
-    const originalFilename = (image as any).name || 'uploaded-image';
-    const fileExtension = path.extname(originalFilename) || '.jpg'; // Default to .jpg if no extension
-    const key = `products/${uuidv4()}${fileExtension}`;
-
-    // Ensure AWS_S3_BUCKET_NAME is set
-    if (!process.env.AWS_S3_BUCKET_NAME) {
-      throw new Error("AWS_S3_BUCKET_NAME environment variable is not set.");
-    }
-
-    // Upload image to S3
-    const params: S3.PutObjectRequest = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: key,
-      Body: imageBuffer,
-      ContentType: image.type,
-    };
-
-    await s3.upload(params).promise();
-
-    imagePath = key;
-
-    // Optional: Delete the old image from S3 if exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { id },
-      select: { imagePath: true },
-    });
-
-    if (existingProduct && existingProduct.imagePath) {
-      try {
-        await s3.deleteObject({
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: existingProduct.imagePath,
-        }).promise();
-      } catch (error) {
-        console.error("Error deleting old image from S3:", error);
-        // Decide whether to throw an error or continue
-      }
-    }
-  }
-
-  // Update the product in the database
-  await prisma.product.update({
-    where: { id },
-    data: {
-      name: data.name,
-      description: data.description,
-      priceInCents: data.priceInCents,
-      categoryId: data.categoryId,
-      imagePath: imagePath, // If imagePath is undefined, it won't update the field
-    },
-  });
+export async function updateProduct( formData: FormData) {
+   // Extract form fields
+   const id = formData.get('id');
+   const name = formData.get('name');
+   const description = formData.get('description');
+   const priceInCents = formData.get('priceInCents');
+   const categoryId = formData.get('categoryId');
+   const image = formData.get('image');
+ 
+   // Validate presence of required fields (image is optional)
+   if (!id || !name || !description || !priceInCents || !categoryId) {
+     throw { general: ["ID, name, description, price, and category are required."] };
+   }
+ 
+   // Validate form data using Zod
+   const result = updateSchema.safeParse({
+     id: String(id),
+     name: String(name),
+     description: String(description),
+     priceInCents: Number(priceInCents),
+     categoryId: String(categoryId),
+   });
+ 
+   if (!result.success) {
+     const formattedErrors: Record<string, string[]> = result.error.flatten().fieldErrors;
+     throw formattedErrors;
+   }
+ 
+   const data = result.data;
+ 
+   // Verify that the category exists
+   const categoryExists = await prisma.category.findUnique({
+     where: { id: data.categoryId },
+   });
+ 
+   if (!categoryExists) {
+     throw { categoryId: ["Selected category does not exist."] };
+   }
+ 
+   // Initialize imagePath (optional)
+   let imagePath: string | undefined = undefined;
+ 
+   // If image is provided, handle it
+   if (image && image instanceof Blob && image.size > 0) {
+     // Validate image file type
+     if (!image.type.startsWith("image/")) {
+       throw { image: ["Only image files are allowed."] };
+     }
+ 
+     // Read the file as a Buffer
+     const imageBuffer = await blobToBuffer(image);
+ 
+     // Enforce file size limit (10 MB)
+     const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+     if (imageBuffer.length > MAX_SIZE) {
+       throw { image: ["Image size should not exceed 10 MB."] };
+     }
+ 
+     // Generate a unique filename
+     const originalFilename = (image as any).name || 'uploaded-image';
+     const fileExtension = path.extname(originalFilename) || '.jpg'; // Default to .jpg if no extension
+     const key = `products/${uuidv4()}${fileExtension}`;
+ 
+     // Ensure AWS_S3_BUCKET_NAME is set
+     if (!process.env.AWS_S3_BUCKET_NAME) {
+       throw new Error("AWS_S3_BUCKET_NAME environment variable is not set.");
+     }
+ 
+     // Upload image to S3
+     const params: S3.PutObjectRequest = {
+       Bucket: process.env.AWS_S3_BUCKET_NAME,
+       Key: key,
+       Body: imageBuffer,
+       ContentType: image.type,
+     };
+ 
+     await s3.upload(params).promise();
+ 
+     imagePath = key;
+ 
+     // Optional: Delete the old image from S3 if exists
+     const existingProduct = await prisma.product.findUnique({
+       where: { id:data.id },
+       select: { imagePath: true },
+     });
+ 
+     if (existingProduct && existingProduct.imagePath) {
+       try {
+         await s3.deleteObject({
+           Bucket: process.env.AWS_S3_BUCKET_NAME,
+           Key: existingProduct.imagePath,
+         }).promise();
+       } catch (error) {
+         console.error("Error deleting old image from S3:", error);
+         // Decide whether to throw an error or continue
+       }
+     }
+   }
+ 
+   // Update the product in the database
+   const updatedProduct = await prisma.product.update({
+     where: { id: data.id },
+     data: {
+       name: data.name,
+       description: data.description,
+       priceInCents: data.priceInCents,
+       categoryId: data.categoryId,
+       ...(imagePath && { imagePath }), // Update imagePath only if a new image was uploaded
+     },
+   });
+ 
+   return updatedProduct;
 }
 
 // Wrapper function to handle update with a specific ID
 // src/app/admin/_actions/products.tsx
 
-export async function handleUpdateProduct(formData: FormData): Promise<void> {
-  const id = formData.get('id');
-  if (typeof id !== 'string') {
-    throw new Error('Invalid product ID');
-  }
-  await updateProduct(id, formData);
-}
+// export async function handleUpdateProduct(formData: FormData): Promise<void> {
+//   const id = formData.get('id');
+//   if (typeof id !== 'string') {
+//     throw new Error('Invalid product ID');
+//   }
+//   await updateProduct(formData);
+// }
 
 // Function to toggle product availability
 export async function toggleProductAvailability(

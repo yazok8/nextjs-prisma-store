@@ -9,6 +9,7 @@ const protectedAdminPaths = ['/admin'];
 
 // Define paths to exclude from protection
 const excludedPaths = [
+  '/user/profile',
   '/admin/signin',
   '/admin/signup',
   '/admin/auth/signup',

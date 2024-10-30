@@ -20,7 +20,7 @@ export default async function Footer() {
     <>
    <footer className="bg-[#0F172A] text-slate-200 text-sm mt-16">
       <Container>
-        <div className="flex flex-col md:flex-row justify-between pt-16 pb-8">
+        <div className="flex md:flex-row justify-between pt-16 pb-8 flex-wrap px-8">
           <FooterList>
           <FooterList>
             <h3 className="text-base font-bold mb-2 text-nowrap">Shop Categories</h3>

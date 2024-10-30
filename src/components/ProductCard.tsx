@@ -42,7 +42,7 @@ export function ProductCard({
   const imageSrc = getImageSrc(imagePath);
 
   return (
-    <Card className="flex flex-col overflow-hidden border-none transform hover:scale-105 transition-transform duration-200 ">
+    <Card className="flex flex-col overflow-hidden w-full max-w-[280px] mx-auto border-none transform hover:scale-105 transition-transform duration-200 ">
       <div className="relative w-full h-auto aspect-video">
         <Link href={`/products/${id}`} className="flex justify-center">
           <Image

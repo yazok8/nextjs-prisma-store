@@ -14,7 +14,8 @@
     "email": "cp .env ./node_modules/react-email && email dev --dir src/email --port 3001",
     "seed": "prisma db seed",
     "migrate:prod": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test-url": "ts-node --esm src/lib/server/testUrl.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

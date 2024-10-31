@@ -82,8 +82,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   try {
     const { userId, productId, discountCodeId, checkoutType } = paymentIntent.metadata;
 
-    if (!userId) {
-      throw new Error('Missing userId in payment intent metadata');
+    if (!userId || !checkoutType) {
+      throw new Error('Missing required metadata fields in payment intent');
     }
 
     console.log(`Fetching user with ID: ${userId}`);
@@ -159,10 +159,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         console.log(`Discount code ${discountCodeId} usage incremented.`);
       }
 
-      // Email sending is uncommented to test
+      // Email sending
       const purchasedProduct = order.orderProducts[0].product;
 
-      const emailHtml = renderPurchaseReceiptEmail({
+      const emailHtml = await renderPurchaseReceiptEmail({
         order: {
           id: order.id,
           pricePaidInCents: order.pricePaidInCents,
@@ -185,7 +185,6 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         subject: 'Order Confirmation',
         html: emailHtml,
       });
-    
 
       console.log('Completed handlePaymentIntentSucceeded without errors.');
     }

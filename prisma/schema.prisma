@@ -8,7 +8,7 @@ datasource db {
 }
 
 model ProcessedEvent {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @map("_id")
   processedAt DateTime @default(now())
 }
 

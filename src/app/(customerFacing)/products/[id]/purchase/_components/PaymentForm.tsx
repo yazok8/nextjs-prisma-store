@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useSearchParams } from "next/navigation";
 import { DiscountCodeType } from "@prisma/client";
 import { useToast } from "@/components/ui/use-toast";
+import { ensureScheme } from "@/lib/helperSchema";
 
 type PaymentFormProps = {
     priceInCents: number;
@@ -59,17 +60,17 @@ export function PaymentForm({
       setIsLoading(true);
   
       const isProduction = process.env.NODE_ENV === "production";
-      const return_url = isProduction
-        ? `${process.env.NEXT_PUBLIC_PROD_URL}/stripe/cartSuccess`
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`;
+      const baseUrl = isProduction
+      ? ensureScheme(process.env.NEXT_PUBLIC_PROD_URL || "")
+      : ensureScheme(process.env.NEXT_PUBLIC_SERVER_URL || "", "http://");
   
-      // Confirm the payment
+      const return_url = `${baseUrl}/stripe/purchaseSuccess`;
   
       try {
         const { error } = await stripe.confirmPayment({
           elements,
           confirmParams: {
-            return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchaseSuccess`,
+            return_url,
             receipt_email: email, // Include the email for receipt
           },
         });

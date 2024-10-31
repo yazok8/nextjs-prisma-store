@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ensureScheme } from "@/lib/helperSchema";
 
 interface CartCheckoutFormProps {
   totalAmount: number;
@@ -51,9 +52,11 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
 
     // Determine the return URL based on the environment
     const isProduction = process.env.NODE_ENV === "production";
-    const return_url = isProduction
-      ? `${process.env.NEXT_PUBLIC_PROD_URL}/stripe/cartSuccess`
-      : `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/cartSuccess`;
+    const baseUrl = isProduction
+    ? ensureScheme(process.env.NEXT_PUBLIC_PROD_URL || "")
+    : ensureScheme(process.env.NEXT_PUBLIC_SERVER_URL || "", "http://");
+
+    const return_url = `${baseUrl}/stripe/cartSuccess`;
 
     try {
       const { error } = await stripe.confirmPayment({

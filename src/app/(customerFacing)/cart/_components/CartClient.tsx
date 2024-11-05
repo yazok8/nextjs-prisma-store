@@ -22,9 +22,6 @@ function CartClient() {
   // Load cart products and handle guest users
   useEffect(() => {
     if (status === "loading") return; // Do nothing while loading
-    if (!session) {
-      handleClearCart(); // Clear cart if user is not authenticated
-    }
   }, [session, status, handleClearCart]);
 
   if (status === "loading") {

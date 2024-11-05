@@ -1,7 +1,6 @@
 // src/app/category/[id]/page.tsx
 
 import { getProductsByCategoryPaginated, getCategoryById } from '@/actions/categories';
-import { ProductWithCategory } from '@/types/Category';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -34,32 +33,39 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const totalPages = Math.ceil(total / PRODUCTS_PER_PAGE);
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6">
-            {/* Category Title */}
-            <h1 className="text-3xl font-bold">{category.name}</h1>
+        <div className="container mx-auto px-4 py-8 flex flex-col">
+            {/* Content Wrapper */}
+            <div>
+                {/* Category Title */}
+                <h1 className="text-3xl font-bold">{category.name}</h1>
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {products.map((product) => (
-                    <ProductCard key={product.id} {...product} />
-                ))}
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {products.map((product) => (
+                        <ProductCard key={product.id} {...product} />
+                    ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex justify-center items-center space-x-2">
+                    {page > 1 && (
+                        <Link href={`/category/${id}?page=${page - 1}`}>
+                            <Button variant="outline">Previous</Button>
+                        </Link>
+                    )}
+                    {page < totalPages && (
+                        <Link href={`/category/${id}?page=${page + 1}`}>
+                            <Button variant="outline">Next</Button>
+                        </Link>
+                    )}
+                </div>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="flex justify-center items-center space-x-2">
-                {page > 1 && (
-                    <Link href={`/category/${id}?page=${page - 1}`}>
-                        <Button variant="outline">Previous</Button>
-                    </Link>
-                )}
+            {/* Page Info */}
+            <div className="mt-auto text-center py-4">
                 <span>
                     Page {page} of {totalPages}
                 </span>
-                {page < totalPages && (
-                    <Link href={`/category/${id}?page=${page + 1}`}>
-                        <Button variant="outline">Next</Button>
-                    </Link>
-                )}
             </div>
         </div>
     );

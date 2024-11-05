@@ -60,8 +60,8 @@ export default function SignIn() {
 
       if (result?.error) {
         toast({
-          title: "Error",
-          description: result.error || "Oops! something went wrong",
+          title: "There was a problem",
+          description: "Your password is incorrect",
           variant: "destructive",
         });
       }

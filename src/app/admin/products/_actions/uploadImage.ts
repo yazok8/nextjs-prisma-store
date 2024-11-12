@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from "uuid";
 
 // Initialize S3 client
 const s3 = new S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Set in environment variables
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Set in environment variables
-  region: process.env.AWS_REGION, // Set your S3 region
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID, 
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, 
+  region: process.env.AWS_REGION,
 });
 
 // Function to generate a pre-signed URL

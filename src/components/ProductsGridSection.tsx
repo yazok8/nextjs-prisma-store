@@ -9,8 +9,8 @@ import Link from "next/link";
 type ProductGridSectionProps = {
     title: string;
     productsFetcher: () => Promise<ProductWithCategory[]>;
-    layout?: "flex" | "grid"; // Optional prop to define layout
-    categoryId?: string; // Required prop
+    layout?: "flex" | "grid";
+    categoryId?: string; 
 };
 
 export function ProductGridSection({

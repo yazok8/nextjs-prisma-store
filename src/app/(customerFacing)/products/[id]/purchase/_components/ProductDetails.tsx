@@ -11,6 +11,7 @@ import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SetQuantity from "../../../_components/SetQuantity";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getImageSrc } from "@/lib/imageHelper";
 
 export type ProductProps = {
   product: {
@@ -86,19 +87,7 @@ export default function ProductDetails({ product }: ProductProps) {
     });
   }, [cartProduct]);
 
-    // Helper function to determine the correct image source
-    const getImageSrc = (path: string): string => {
-      if (path.startsWith("http://") || path.startsWith("https://")) {
-        // Absolute URL (e.g., images hosted on a CDN or external server)
-        return path;
-      } else if (path.startsWith("/")) {
-        // Relative path (e.g., images stored in the public folder)
-        return path;
-      } else {
-        // Assume the image is stored on S3
-        return `${process.env.NEXT_PUBLIC_S3_BUCKET_URL}/${path}`;
-      }
-    };
+
   
     const imageSrc = getImageSrc(product.imagePath);
 

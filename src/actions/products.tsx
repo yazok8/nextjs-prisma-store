@@ -13,19 +13,11 @@ export interface IProductParams {
  * @returns Promise resolving to an array of products.
  */
 export default async function getProducts(params: IProductParams): Promise<Product[]> {
-  const { search } = params;
 
   const query: any = {
     where: { isAvailableForPurchase: true },
     orderBy: { name: "asc" },
   };
-
-  if (search && search.trim() !== "") {
-    query.where.name = {
-      contains: search.trim(),
-      mode: "insensitive",
-    };
-  }
 
   try {
     const fetchedProducts = await prisma.product.findMany(query);

@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/components/Provider"; // Import the new Providers component
 import Footer from "@/components/footer/Footer";
-import * as Sentry from "@sentry/nextjs";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -13,11 +12,6 @@ export const metadata: Metadata = {
   title: "Online electronics Store",
   description: "Top quality electronics products for your home and office",
 };
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN, // Set in environment variables
-  tracesSampleRate: 1.0,
-});
 
 export default function RootLayout({
   children,

@@ -34,6 +34,7 @@
     "@sentry/nextjs": "^8.40.0",
     "@stripe/react-stripe-js": "^2.7.1",
     "@stripe/stripe-js": "^3.4.1",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "aws-sdk": "^2.1691.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",

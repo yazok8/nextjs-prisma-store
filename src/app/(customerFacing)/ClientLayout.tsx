@@ -65,7 +65,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <>
-      <Nav className="fixed">
+      <Nav className="fixed z-50">
         <NavLink href="/">
           <Store />
         </NavLink>

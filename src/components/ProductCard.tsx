@@ -20,9 +20,7 @@ export function ProductCard({
   imagePath,
 }: ProductWithCategory) {
   const { handleAddProductToCart, cartProducts } = useCart();
-
   const [isProductInCart, setIsProductInCart] = useState(false);
-
   const [cartProduct, setCartProduct] = useState<CartProductType>({
     id: id,
     imagePath: imagePath,
@@ -42,19 +40,20 @@ export function ProductCard({
   const imageSrc = getImageSrc(imagePath);
 
   return (
-    <Card className="flex flex-col overflow-hidden w-full max-w-[280px] mx-auto border-none transform hover:scale-105 transition-transform duration-200 ">
-      <div className="relative w-full h-auto aspect-video">
-        <Link href={`/products/${id}`} className="flex justify-center">
+    <Card className="flex flex-col overflow-hidden w-full max-w-[280px] mx-auto border-none transform hover:scale-105 transition-transform duration-200">
+      <div className="relative w-full pt-[100%]"> {/* Use padding-top for aspect ratio */}
+        <Link href={`/products/${id}`} className="absolute inset-0">
           <Image
-            className="flex justify-center items-center object-contain object-center"
+            className="object-contain"
             src={imageSrc}
-            fill
             alt={name}
-            sizes="(max-width: 768px) 100vw,
-                   (max-width: 1200px) 50vw,
-                   33vw"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
             onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = "/fallback-image.png"; // Path to your fallback image
+              const img = e.target as HTMLImageElement;
+              img.src = "/fallback-image.png";
+              img.srcset = "";
             }}
           />
         </Link>
@@ -69,7 +68,7 @@ export function ProductCard({
       </CardHeader>
       <CardContent className="flex-grow">
         <Link href={`/products/${id}`}>
-          {/* You can add additional content here if needed */}
+          <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
         </Link>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
@@ -106,7 +105,7 @@ export function ProductCard({
 export function ProductCardSkeleton() {
   return (
     <Card className="flex flex-col overflow-hidden animate-pulse max-w-[85%] mx-auto">
-      <div className="aspect-video bg-gray-300" />
+      <div className="relative pt-[100%] bg-gray-300" />
       <CardHeader>
         <CardTitle>
           <div className="w-3/4 h-6 rounded-full bg-gray-300" />
@@ -121,8 +120,8 @@ export function ProductCardSkeleton() {
         <div className="w-3/4 h-4 rounded-full bg-gray-300" />
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
-        <Button asChild size="lg" variant="default" className="w-full">
-          <Link href="#">Loading...</Link>
+        <Button disabled size="lg" variant="default" className="w-full">
+          Loading...
         </Button>
       </CardFooter>
     </Card>

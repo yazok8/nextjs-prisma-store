@@ -40,7 +40,7 @@ export function ProductCard({
   const imageSrc = getImageSrc(imagePath);
 
   return (
-    <Card className="flex flex-col overflow-hidden w-full max-w-[280px] mx-auto border-none transform hover:scale-105 transition-transform duration-200">
+    <Card className="flex flex-col overflow-hidden w-full max-w-[280px] mx-auto border-none">
       <div className="relative w-full pt-[100%]"> {/* Use padding-top for aspect ratio */}
         <Link href={`/products/${id}`} className="absolute inset-0">
           <Image
@@ -72,18 +72,20 @@ export function ProductCard({
         </Link>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
-        {isProductInCart && (
+        {isProductInCart && (<>
           <p className="mb-2 text-slate-500 flex items-center gap-1">
             <CheckCircle className="text-teal-400" size={20} />
             Product added to cart
           </p>
-        )}
+       </> )}
 
         {isProductInCart ? (
-          <Button asChild size="lg" variant="default" className="w-full">
+          <>          <Button asChild size="lg" variant="default" className="w-full">
             <Link href="/cart">View cart</Link>
           </Button>
+          </>
         ) : (
+          <>
           <Button
             size="lg"
             variant="default"
@@ -92,6 +94,8 @@ export function ProductCard({
           >
             Add To Cart
           </Button>
+          </>
+
         )}
 
         <Button asChild size="lg" variant="default" className="w-full">

@@ -1,6 +1,8 @@
+// components/SliderDots.tsx
+
 "use client";
 
-import { memo } from 'react';
+import React from 'react';
 
 interface SliderDotsProps {
   totalSlides: number;
@@ -8,21 +10,19 @@ interface SliderDotsProps {
   onDotClick: (index: number) => void;
 }
 
-const SliderDots = memo(function SliderDots({ totalSlides, currentIndex, onDotClick }: SliderDotsProps) {
+export function SliderDots({ totalSlides, currentIndex, onDotClick }: SliderDotsProps) {
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-      {Array.from({ length: totalSlides }, (_, index) => (
+    <div className="absolute left-1/2 transform -translate-x-1/2 flex space-x-2">
+      {Array.from({ length: totalSlides }).map((_, index) => (
         <button
           key={index}
+          className={`w-3 h-3 rounded-full focus:outline-none ${
+            currentIndex === index ? 'bg-blue-500' : 'bg-gray-300'
+          }`}
           onClick={() => onDotClick(index)}
-          className={`w-3 h-3 rounded-full transition-colors ${
-            currentIndex === index ? "bg-gray-800" : "bg-gray-400"
-          } focus:outline-none hover:bg-gray-600`}
           aria-label={`Go to slide ${index + 1}`}
         />
       ))}
     </div>
   );
-});
-
-export default SliderDots
+}

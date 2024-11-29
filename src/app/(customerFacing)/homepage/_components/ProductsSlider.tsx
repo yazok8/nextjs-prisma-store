@@ -1,27 +1,26 @@
-import { memo } from 'react';
+// components/ProductSlider.tsx
+
+"use client";
+
+import { Product } from '@prisma/client';
 import Image from 'next/image';
 import { getImageSrc } from '@/lib/imageHelper';
-import { Product } from '@prisma/client';
+import { GenericSlider } from './GenericSlider'; 
 
-interface SlideContentProps {
-  product: Product;
-  isActive: boolean;
+interface ProductSliderProps {
+  products: Product[];
 }
 
-const SlideContent = memo(function SlideContent({ product, isActive }: SlideContentProps) {
+export function ProductSlider({ products }: ProductSliderProps) {
   return (
-    <div
-      className={`absolute inset-0 transition-opacity duration-500 ease-in-out flex items-center justify-center ${
-        isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-      }`}
-    >
-      <div className="relative w-full max-w-[280px] sm:max-w-none mx-auto sm:h-full">
-        <div className="relative w-full pt-[100%] sm:pt-0 sm:h-full">
+    <GenericSlider>
+      {products.map((product) => (
+        <div key={product.id} className="relative w-full h-full">
           <Image
             src={getImageSrc(product.imagePath)}
             alt={`Image of ${product.name}`}
             fill
-            priority={isActive}
+            priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
             className="rounded-lg object-contain"
           />
@@ -36,9 +35,7 @@ const SlideContent = memo(function SlideContent({ product, isActive }: SlideCont
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      ))}
+    </GenericSlider>
   );
-});
-
-export default SlideContent;
+}

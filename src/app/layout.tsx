@@ -20,8 +20,8 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en">
-      <body className={cn("min-h-screen flex flex-col bg-background font-sans antialiased", inter.variable)}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn("min-h-screen flex flex-col bg-background font-sans antialiased", inter.variable)} suppressHydrationWarning>
         <Providers>
           <main className="flex-grow">{children}</main>
           <Toaster />

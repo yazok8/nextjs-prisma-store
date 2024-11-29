@@ -139,7 +139,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         </div>
       </Nav>
 
-      <div className="container mb-4 mt-24">{children}</div>
+      <div className="container mb-4">{children}</div>
     </>
   );
 }

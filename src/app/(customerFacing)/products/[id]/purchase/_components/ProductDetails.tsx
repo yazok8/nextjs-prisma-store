@@ -93,10 +93,8 @@ export default function ProductDetails({ product }: ProductProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-4 h-full md:flex-row">
-        <div className="flex-shrink-0 w-4/12 relative justify-start md:w-1/12 pt-[10%]">
-        </div>
-        <div className="flex-shrink-0 w-1/2 relative justify-end md:w-1/4 pt-[20%]">
+      <div className="flex flex-col justify-start items-start mr-auto gap-2 md:gap-7 h-full md:flex-row mt-20">
+        <div className="flex-shrink-0 w-1/2 relative justify-end md:w-1/3 pt-[28%]">
         <Image
             className="flex justify-center items-center object-contain object-center"
             src={imageSrc}

@@ -94,9 +94,9 @@ export default function ProductDetails({ product }: ProductProps) {
   return (
     <>
       <div className="flex flex-col justify-start items-start mr-auto gap-2 md:gap-7 h-full md:flex-row mt-20">
-        <div className="flex-shrink-0 w-1/2 relative justify-end md:w-1/3 pt-[28%]">
+        <div className="flex-shrink-0 w-1/2 relative justify-start items-start md:w-1/3 pt-[28%]">
         <Image
-            className="flex justify-center items-center object-contain object-center"
+            className="flex justify-start items-start object-contain object-center"
             src={imageSrc}
             fill
             alt={product.name}

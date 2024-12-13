@@ -75,7 +75,7 @@ Start the development server:
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view the application.
+Visit [http://localhost:8080](http://localhost:8080) to view the application.
 
 ### Production
 

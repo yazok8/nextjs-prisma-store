@@ -114,5 +114,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Next.js](https://nextjs.org)
 - [Prisma](https://prisma.io)
 - [Tailwind CSS](https://tailwindcss.com)
+- [Shadcn/ui](https://ui.shadcn.com)
 - [Radix UI](https://radix-ui.com)
 - [Stripe](https://stripe.com)

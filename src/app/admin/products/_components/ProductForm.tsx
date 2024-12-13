@@ -26,6 +26,7 @@ const isFieldError = (errors: any): errors is Record<string, string[]> => {
 
 export function ProductForm({ product }: { product?: Product | null }) {
   const [error, setError] = useState<any>(null); // Can be string or Record<string, string[]>
+  const [brand, setBrand] = useState<string>(product?.brand || "");
   const [success, setSuccess] = useState<string | null>(null);
   const [priceInCents, setPriceInCents] = useState<number | undefined>(
     product?.priceInCents
@@ -192,6 +193,16 @@ export function ProductForm({ product }: { product?: Product | null }) {
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="brand">Brand</Label>
+        <Input
+          type="text"
+          id="brand"
+          name="brand"
+          onChange={e => setBrand(e.target.value)}
+          defaultValue={brand}
+        />
       </div>
 
       {/* Image Field */}

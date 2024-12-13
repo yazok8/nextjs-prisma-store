@@ -124,6 +124,7 @@ const updateSchema = z.object({
   description: z.string().min(1, { message: "Description is required." }),
   priceInCents: z.coerce.number().int().min(1, { message: "Price must be at least 1 cent." }),
   categoryId: z.string().min(1, { message: "Category is required." }),
+  brand:z.string().optional()
 });
 
 
@@ -143,6 +144,7 @@ export async function updateProduct( formData: FormData) {
    const description = formData.get('description');
    const priceInCents = formData.get('priceInCents');
    const categoryId = formData.get('categoryId');
+   const brand = formData.get('brand');
    const image = formData.get('image');
  
    // Validate presence of required fields (image is optional)
@@ -157,6 +159,7 @@ export async function updateProduct( formData: FormData) {
      description: String(description),
      priceInCents: Number(priceInCents),
      categoryId: String(categoryId),
+     brand:String(brand)
    });
  
    if (!result.success) {
@@ -243,6 +246,7 @@ export async function updateProduct( formData: FormData) {
        description: data.description,
        priceInCents: data.priceInCents,
        categoryId: data.categoryId,
+       brand: data.brand,
        ...(imagePath && { imagePath }), // Update imagePath only if a new image was uploaded
      },
    });
@@ -250,16 +254,6 @@ export async function updateProduct( formData: FormData) {
    return updatedProduct;
 }
 
-// Wrapper function to handle update with a specific ID
-// src/app/admin/_actions/products.tsx
-
-// export async function handleUpdateProduct(formData: FormData): Promise<void> {
-//   const id = formData.get('id');
-//   if (typeof id !== 'string') {
-//     throw new Error('Invalid product ID');
-//   }
-//   await updateProduct(formData);
-// }
 
 // Function to toggle product availability
 export async function toggleProductAvailability(

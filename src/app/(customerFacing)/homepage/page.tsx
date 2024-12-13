@@ -33,7 +33,7 @@ export default async function Homepage() {
       <>
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 justify-center">
           {/* "View All Products" Button */}
-          <div className="col-span-1 lg:col-span-2 flex justify-end mt-28">
+          <div className="col-span-1 lg:col-span-2 flex justify-end mt-20">
             <Button variant="outline" asChild>
               <Link href="/products" className="flex items-center space-x-2">
                 <span>View All Products</span>

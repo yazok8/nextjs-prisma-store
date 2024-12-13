@@ -6,7 +6,6 @@ import {prisma} from '@/lib/prisma';
 import { cache } from "@/lib/cache";
 import { ProductWithCategory } from "@/types/Category";
 import { Suspense } from "react";
-import { useRouter } from "next/router";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -38,14 +37,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     ? parseInt(pageParam[0], 10)
     : parseInt(pageParam || "1", 10);
 
-  const perPage = 9;
+  const perPage = 12;
 
   const totalProducts = await getTotalProducts();
   console.log('Total Products:', totalProducts); 
   const totalPages = Math.ceil(totalProducts / perPage);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mt-20">
       {/* Grid layout for displaying products */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
         {/* Use Suspense to handle loading states */}

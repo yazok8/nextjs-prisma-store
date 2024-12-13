@@ -30,7 +30,7 @@ function CartClient() {
 
   if (!cartProducts || cartProducts.length === 0) {
     return (
-      <div className='flex flex-col items-center'>
+      <div className='flex flex-col items-center mt-20'>
         <div className='text-2xl'>Your cart is empty</div>
         <div>
           <Link href="/" className="text-slate-500 flex items-center gap-1 mt-2">

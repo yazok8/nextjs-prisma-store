@@ -1,4 +1,4 @@
-# Next.js + Prisma E-commerce Platform
+# Next.js + Prisma + TailwindCSS E-commerce Platform
 
 A modern, production-ready e-commerce platform built with Next.js 13+, Prisma, and a comprehensive web stack. Features include authentication, secure payments, image management, and a polished UI powered by Tailwind CSS and Radix UI.
 

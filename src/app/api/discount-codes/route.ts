@@ -1,21 +1,21 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export default async function GET(req:NextApiRequest, res:NextApiResponse){
-    try{
+export async function GET() {
+    try {
         const discountCodes = await prisma.discountCode.findMany({
-            include:{
-                _count:{
-                    select:{orders: true},
+            include: {
+                _count: {
+                    select: { orders: true },
                 },
             },
-            orderBy:{
-                createdAt:'desc',
+            orderBy: {
+                createdAt: 'desc',
             }
         });
-        return res.status(200).json(discountCodes)
-    }catch(error){
+        return NextResponse.json(discountCodes);
+    } catch (error) {
         console.log(error);
-        res.status(500).json({error:'Internal Server Error'});
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

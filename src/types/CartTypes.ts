@@ -2,26 +2,32 @@ import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_
 import { ReactNode } from "react";
 
 
-export type ToastFunction = (options: {
-  title: ReactNode;
-  variant?: "destructive" | "default";
-}) => void;
+
+export type ToastProps = { 
+  title: string; 
+  description?: string; 
+  variant?: "default" | "destructive" 
+};
+
 
 export type Router = {
   push: (url: string) => void;
 };
 
-export type CartContextType = {
+export interface CartContextType {
   cartTotalQty: number;
+  cartSubTotalAmount: number;
   cartProducts: CartProductType[] | null;
   handleAddProductToCart: (product: CartProductType) => void;
   handleRemoveCartProduct: (product: CartProductType) => void;
   handleCartQuantityIncrease: (product: CartProductType) => void;
   handleCartQuantityDecrease: (product: CartProductType) => void;
   handleClearCart: () => void;
-  cartSubTotalAmount: number;
   paymentIntent: string | null;
   handleSetPaymentIntent: (val: string | null) => void;
   clientSecret: string | null;
-  initializePaymentIntent: (router: Router, toast: ToastFunction) => void;
-};
+  initializePaymentIntent: (
+    router: Router,
+    toast: (props: ToastProps) => void
+  ) => Promise<void>;
+}

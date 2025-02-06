@@ -14,11 +14,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "next-auth/react";
 import { CartProductType } from "../../(customerFacing)/products/[id]/purchase/_components/ProductDetails";
 
-import { CartContextType, ToastFunction } from "@/types/CartTypes";
 import { storage } from "./storage";
 import { calculateTotals } from "./utils";
-import { Router } from "@/types/CartTypes";
 import { toastMessages } from "./toasts";
+import { CartContextType, Router, ToastProps } from "@/types/CartTypes";
 
 const CartContext = createContext<CartContextType | null>(null);
 
@@ -31,9 +30,28 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [cartTotalQty, setCartTotalQty] = useState(0);
   const [cartSubTotalAmount, setCartSubTotalAmount] = useState(0);
-  const [cartProducts, setCartProducts] = useState<CartProductType[] | null>(null);
-  const [paymentIntent, setPaymentIntent] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [cartProducts, setCartProducts] = useState<CartProductType[] | null>(() => {
+    // Initialize cart from storage on mount
+    if (typeof window !== 'undefined') {
+      const cartKey = storage.getCartKey(session?.user?.id);
+      return storage.getCartItems(cartKey);
+    }
+    return null;
+  });
+  const [paymentIntent, setPaymentIntent] = useState<string | null>(() => {
+    // Initialize payment intent from storage on mount
+    if (typeof window !== 'undefined') {
+      return storage.getPaymentIntent();
+    }
+    return null;
+  });
+  const [clientSecret, setClientSecret] = useState<string | null>(() => {
+    // Initialize client secret from storage on mount
+    if (typeof window !== 'undefined') {
+      return storage.getClientSecret();
+    }
+    return null;
+  });
 
   const cartKey = storage.getCartKey(session?.user?.id);
 
@@ -46,16 +64,25 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
     storage.clearAll(cartKey);
   }, [cartKey]);
 
+  // Handle user session changes
   useEffect(() => {
     if (previousUserId.current && previousUserId.current !== session?.user?.id) {
+      // Clear previous user's cart
       storage.clearAll(storage.getCartKey(previousUserId.current));
+      
+      // Load new user's cart
+      const newCartKey = storage.getCartKey(session?.user?.id);
+      const cartItems = storage.getCartItems(newCartKey);
+      setCartProducts(cartItems);
     }
     previousUserId.current = session?.user?.id ?? null;
   }, [session]);
 
+  // Sync cart with storage when session changes
   useEffect(() => {
     if (!session) {
-      handleClearCart();
+      const guestCartItems = storage.getCartItems(storage.getCartKey(undefined));
+      setCartProducts(guestCartItems);
       return;
     }
 
@@ -63,17 +90,25 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
     const storedPaymentIntent = storage.getPaymentIntent();
     const storedClientSecret = storage.getClientSecret();
 
-    setCartProducts(cartItems);
-    setPaymentIntent(storedPaymentIntent);
-    setClientSecret(storedClientSecret);
-  }, [cartKey, session, handleClearCart]);
+    if (cartItems) {
+      setCartProducts(cartItems);
+    }
+    if (storedPaymentIntent) {
+      setPaymentIntent(storedPaymentIntent);
+    }
+    if (storedClientSecret) {
+      setClientSecret(storedClientSecret);
+    }
+  }, [cartKey, session]);
 
+  // Persist cart changes to storage
   useEffect(() => {
-    if (session?.user?.id) {
+    if (typeof window !== 'undefined') {
       storage.setCartItems(cartKey, cartProducts);
     }
-  }, [cartProducts, cartKey, session]);
+  }, [cartProducts, cartKey]);
 
+  // Update totals when cart changes
   useEffect(() => {
     const totals = calculateTotals(cartProducts);
     setCartTotalQty(totals.qty);
@@ -160,7 +195,7 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const initializePaymentIntent = useCallback(
-    async (router: Router, toast: ToastFunction) => {
+    async (router: Router, toast: (props: ToastProps) => void) => {
       if (initialized.current || !cartProducts?.length) return;
       initialized.current = true;
 
@@ -188,7 +223,10 @@ export const CartContextProvider = ({ children }: { children: ReactNode }) => {
         storage.setClientSecret(data.paymentIntent.client_secret);
       } catch (error) {
         console.error("Error initializing payment intent:", error);
-        toast(toastMessages.paymentError);
+        toast({
+          title: "Error processing payment",
+          variant: "destructive"
+        });
       }
     },
     [cartProducts, paymentIntent, handleSetPaymentIntent]

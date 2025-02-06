@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useCart } from "@/app/webhooks/useCart";
+import { useCart } from "@/app/webhooks/useCart/CartContext";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 

@@ -39,6 +39,7 @@ const addSchema = z
     path: ["productIds"],
   })
 
+
   export async function addDiscountCode(prevState: unknown, formData: FormData) {
     const productIds = formData.getAll("productIds")
     const result = addSchema.safeParse({
@@ -49,10 +50,13 @@ const addSchema = z
     if (result.success === false) return result.error.formErrors.fieldErrors
   
     const data = result.data
+
   
     await prisma.discountCode.create({
       data: {
         code: data.code,
+        limit:data.limit,
+        expiresAt:data.expiresAt,
         discountAmount: data.discountAmount,
         discountType: data.discountType,
         allProducts: data.allProducts,

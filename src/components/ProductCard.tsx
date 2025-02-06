@@ -1,7 +1,7 @@
 "use client";
 
 import { CartProductType } from "@/app/(customerFacing)/products/[id]/purchase/_components/ProductDetails";
-import { useCart } from "@/app/webhooks/useCart";
+import { useCart } from "@/app/webhooks/useCart/CartContext";
 import { ProductWithCategory } from "@/types/Category";
 import { useEffect, useState } from "react";
 import Link from "next/link";

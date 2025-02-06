@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useCart } from '@/app/webhooks/useCart';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -11,6 +10,7 @@ import CartItem from './CartItem';
 import { formatCurrency } from '@/lib/formatters';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react'; // Import useSession
+import { useCart } from '@/app/webhooks/useCart/CartContext';
 
 
 function CartClient() {
@@ -44,7 +44,7 @@ function CartClient() {
 
   return (
     <div>
-      <h2 className='text-center font-bold mb-8'>Shopping Cart</h2>
+      <h2 className='text-center font-bold mb-8 mt-[100px] text-2xl'>Shopping Cart</h2>
       <div className='grid grid-cols-5 text-sx gap-4 pb-2 items-center'>
         <div className="col-span-2 justify-self-start">Product</div>
         <div className='justify-self-center'>Price</div>

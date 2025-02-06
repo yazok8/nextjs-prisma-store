@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import {
   CheckCircle2,
-  Globe,
   Infinity,
   Minus,
   MoreVertical,
@@ -22,11 +21,10 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import prisma from '@/lib/prisma'; // Ensure this is the default export
+import { prisma } from '@/lib/prisma'; // Named export
 import { Prisma } from "@prisma/client";
 import {
   formatDateTime,
@@ -34,19 +32,24 @@ import {
   formatNumber,
 } from "@/lib/formatters";
 import { ActiveToggleDropDownItem, DeleteDropDownItem } from "./_components/discountCodeActions";
-// import {
-//   ActiveToggleDropdownItem,
-//   DeleteDropdownItem,
-// } from "./_components/DiscountCodeActions";
 
-const WHERE_EXPIRED: Prisma.DiscountCodeWhereInput = {
-  OR: [
-    // Note: Field-to-field comparison isn't supported in MongoDB with Prisma
-    { limit: { not: null, lte: 0 } }, // Placeholder condition
-    { expiresAt: { not: null, lte: new Date() } },
-  ],
-};
+// Define a type that includes the count of orders
+type DiscountCodeWithOrderCount = Prisma.DiscountCodeGetPayload<{
+  select: {
+    id: true;
+    allProducts: true;
+    code: true;
+    discountAmount: true;
+    discountType: true;
+    expiresAt: true;
+    limit: true;
+    uses: true;
+    isActive: true;
+    _count: { select: { orders: true } };
+  };
+}>;
 
+// Select fields including the count of orders
 const SELECT_FIELDS: Prisma.DiscountCodeSelect = {
   id: true,
   allProducts: true,
@@ -60,60 +63,92 @@ const SELECT_FIELDS: Prisma.DiscountCodeSelect = {
   _count: { select: { orders: true } },
 };
 
-function getExpiredDiscountCodes() {
+// Fetch expired discount codes
+async function getExpiredDiscountCodes(): Promise<DiscountCodeWithOrderCount[]> {
   return prisma.discountCode.findMany({
     select: SELECT_FIELDS,
-    where: WHERE_EXPIRED,
+    where: {
+      OR: [
+        { limit: { lte: 0 } },
+        { expiresAt: { lte: new Date() } },
+      ],
+    },
     orderBy: { createdAt: "asc" },
   });
 }
 
-function getUnexpiredDiscountCodes() {
+// Fetch unexpired discount codes
+async function getUnexpiredDiscountCodes(): Promise<DiscountCodeWithOrderCount[]> {
   return prisma.discountCode.findMany({
     select: SELECT_FIELDS,
-    where: { NOT: WHERE_EXPIRED },
+    where: {
+      limit: { gt: 0 },
+      OR: [
+        { expiresAt: { gt: new Date() } },
+        { expiresAt: null },
+      ],
+    },
     orderBy: { createdAt: "asc" },
   });
 }
 
+// Main Page Component
 export default async function DiscountCodesPage() {
-  const [expiredDiscountCodes, unexpiredDiscountCodes] = await Promise.all([
-    getExpiredDiscountCodes(),
-    getUnexpiredDiscountCodes(),
-  ]);
+  try {
+    // Fetch both expired and unexpired discount codes concurrently
+    const [expiredDiscountCodes, unexpiredDiscountCodes] = await Promise.all([
+      getExpiredDiscountCodes(),
+      getUnexpiredDiscountCodes(),
+    ]);
 
-  return (
-    <>
-      <div className="flex justify-between items-center gap-4">
-        <PageHeader>Coupons</PageHeader>
-        <Button asChild>
-          <Link href="/admin/discountCodes/new">Add Coupon</Link>
-        </Button>
-      </div>
-      <DiscountCodesTable
-        discountCodes={unexpiredDiscountCodes}
-        canDeactivate
-      />
+    console.log("Unexpired Discount Codes:", unexpiredDiscountCodes);
+    console.log("Expired Discount Codes:", expiredDiscountCodes);
 
-      <div className="mt-8">
-        <h2 className="text-xl font-bold">Expired Coupons</h2>
-        <DiscountCodesTable discountCodes={expiredDiscountCodes} isInactive />
-      </div>
-    </>
-  );
+    return (
+      <>
+        <div className="flex justify-between items-center gap-4">
+          <PageHeader>Coupons</PageHeader>
+          <Button asChild>
+            <Link href="/admin/discountCodes/new">Add Coupon</Link>
+          </Button>
+        </div>
+
+        {/* Unexpired Discount Codes */}
+        <DiscountCodesTable
+          discountCodes={unexpiredDiscountCodes}
+          canDeactivate
+        />
+
+        {/* Expired Discount Codes */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold">Expired Coupons</h2>
+          <DiscountCodesTable discountCodes={expiredDiscountCodes} isInactive />
+        </div>
+      </>
+    );
+  } catch (error) {
+    console.error("Error fetching discount codes:", error);
+    return <div className="text-destructive">Failed to load discount codes.</div>;
+  }
 }
 
+// Component Props Type
 type DiscountCodesTableProps = {
-  discountCodes: Awaited<ReturnType<typeof getUnexpiredDiscountCodes>>;
+  discountCodes: DiscountCodeWithOrderCount[];
   isInactive?: boolean;
   canDeactivate?: boolean;
 };
 
+// Discount Codes Table Component
 function DiscountCodesTable({
   discountCodes,
   isInactive = false,
   canDeactivate = false,
 }: DiscountCodesTableProps) {
+  if (discountCodes.length === 0) {
+    return <div className="text-muted-foreground">No discount codes found.</div>;
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -126,7 +161,6 @@ function DiscountCodesTable({
           <TableHead>Expires</TableHead>
           <TableHead>Remaining Uses</TableHead>
           <TableHead>Orders</TableHead>
-          {/* Removed Products Column */}
           <TableHead className="w-0">
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -165,7 +199,6 @@ function DiscountCodesTable({
               )}
             </TableCell>
             <TableCell>{formatNumber(discountCode._count.orders)}</TableCell>
-            {/* Removed Products Cell */}
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger>
@@ -195,5 +228,3 @@ function DiscountCodesTable({
     </Table>
   );
 }
-
-

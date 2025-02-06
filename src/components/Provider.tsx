@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import { CartContextProvider } from "@/app/webhooks/useCart";
+import { CartContextProvider } from "@/app/webhooks/useCart/CartContext";
 import React, { ReactNode } from "react";
 
 interface ProvidersProps {

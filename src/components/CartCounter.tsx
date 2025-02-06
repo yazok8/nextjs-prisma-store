@@ -1,4 +1,4 @@
-import { useCart } from '@/app/webhooks/useCart'
+import { useCart } from '@/app/webhooks/useCart/CartContext'
 import { ShoppingBag } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React from 'react'

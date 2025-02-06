@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/formatters";
 import Image from "next/image";
 
 import Link from "next/link";
-import { useCart } from "@/app/webhooks/useCart";
+import { useCart } from "@/app/webhooks/useCart/CartContext";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";

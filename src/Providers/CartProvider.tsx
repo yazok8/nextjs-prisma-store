@@ -1,6 +1,6 @@
 "use client";
 
-import { CartContextProvider } from "@/app/webhooks/useCart";
+import { CartContextProvider } from "@/app/webhooks/useCart/CartContext";
 
 interface CartProviderProps{
     children:React.ReactNode;

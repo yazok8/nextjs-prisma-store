@@ -92,7 +92,7 @@ export default function CartCheckoutForm({ totalAmount }: CartCheckoutFormProps)
     <form onSubmit={handleSubmit}>
     <Card className="border-none">
       <CardHeader>
-        <CardTitle>Checkout</CardTitle>
+        <CardTitle className="text-2xl">Cart Checkout</CardTitle>
       </CardHeader>
       <CardContent>
         <AddressElement

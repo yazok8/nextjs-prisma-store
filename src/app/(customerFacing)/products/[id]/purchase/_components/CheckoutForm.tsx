@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { DiscountCodeType } from "@prisma/client";
 import { getDiscountedAmount } from "@/lib/discountCodeHelper";
 import { PaymentForm } from "./PaymentForm";
+import { getImageSrc } from '@/lib/imageHelper';
 
 // Initialize Stripe outside of the component to prevent re-creating on every render
 const stripePromise = loadStripe(
@@ -91,13 +92,14 @@ export default function ProductCheckoutForm({
 
   return (
     <div className="max-w-5xl w-full mx-auto space-y-8">
-      <div className="flex gap-4 items-center">
-        <div className="aspect-video flex-shrink-0 w-1/3 relative">
+      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-center">
+        <div className="aspect-video flex-shrink-0 w-1/6 relative">
           <Image
-            src={product.imagePath}
-            fill
+            src={getImageSrc(product.imagePath)}
+            width={200}
+            height={200}
             alt={product.name}
-            className="object-contain"
+            className="object-contain min-w-[250px] min-h-[250px]"
           />
         </div>
         <div>

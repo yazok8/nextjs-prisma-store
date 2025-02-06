@@ -74,7 +74,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
             <SearchBar />
           </div>
         </div>
-        <div className="inline-flex justify-center text-center align-center space-x-2">
+        <div className="inline-flex flex-row-reverse justify-center text-center align-center space-x-2">
           <div className="hidden md:flex items-center space-x-2">
             <a
               ref={profileButtonRef} // Reference the profile button
